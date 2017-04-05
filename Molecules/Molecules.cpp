@@ -605,12 +605,13 @@ void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,
     QVector3D d=c1-c2;
     QVector3D a(0,0,1);
     QVector3D rot = QVector3D::crossProduct(d,a);
+    float phi = asin(rot.length()/(a.length()*d.length()))*180/M_PI;
+    if(QVector3D::dotProduct(d,a)>0)
+        phi = 180-phi;
+
     QMatrix4x4 M(modelView);
     M.translate(c1);
-
-
-    //M.rotate(acos(QVector3D::dotProduct(d,a)/a.length()*d.length()),QVector3D::crossProduct(d.normalized(),a.normalized()));
-    M.rotate(asin(rot.length()/(a.length()*d.length()))*180/M_PI,rot.normalized());
+    M.rotate(phi,rot.normalized());
     M.scale(r,r,(d).length());
 
     const int t = materialType;
@@ -907,10 +908,10 @@ void MyGLWidget::paintGL() {
 
 
     if (m.parts.size()==0){
-        drawSolidSphere(QVector3D(1,0,0),1,QVector3D(0.2,0.2,0.2));
-        drawSolidSphere(QVector3D(0,2,3),1,QVector3D(0.2,0.2,0.2));
-        drawCylinder(QVector3D(1,0,0),QVector3D(0,2,3),0.5,QVector3D(0.1,0.1,0.1));
-        drawCylinder(QVector3D(0,2,3),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
+        drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2));
+        drawSolidSphere(QVector3D(0,2,0),0.3,QVector3D(0.2,0.2,0.2));
+        drawCylinder(QVector3D(1,0,0),QVector3D(0,2,0),0.1,QVector3D(0.1,0.1,0.1));
+        //drawCylinder(QVector3D(0,2,3),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
         //drawSolidSphere(QVector3D(0,3,0),1,QVector3D(0.2,0.2,0.2));
        // drawCylinder(QVector3D(0,3,0),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
     }
