@@ -6,5 +6,6 @@ QT += core gui widgets
 
 RESOURCES += shaders.qrc
 HEADERS += Molecules.h
-SOURCES += Molecules.cpp
+SOURCES += Molecules.cpp \
+    import.cpp
 
