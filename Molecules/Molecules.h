@@ -126,7 +126,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
     void drawSolidSphere(const QVector3D&,float,const QVector3D);
-    void drawCylinder(const QVector3D&,const QVector3D&,float);
+    void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
     void drawTriangleSets();
 
     CGMainWindow *main;

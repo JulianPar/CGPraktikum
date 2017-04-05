@@ -412,10 +412,10 @@ void MyGLWidget::initCylinderVBO(){
         // Vertex
         float vertX = cos(theta);
         float vertY = sin(theta);
-        QVector3D(vertX,-1,vertY);
 
-        ico.push_back(QVector3D(vertX,-1,vertY));
-        ico.push_back(QVector3D(vertX,1,vertY));
+        ico.push_back(QVector3D(vertX,vertY,0));
+        ico.push_back(QVector3D(vertX,vertY,1));
+
 
     }
 
@@ -585,6 +585,7 @@ void MyGLWidget::initializeGL() {
     initializeOpenGLFunctions();
     initShaders();
     initMaterials();
+    initCylinderVBO();
     initSolidSphereVBO();
 
     glClearColor(0.5,0.5,0.5,1);
@@ -596,6 +597,45 @@ void MyGLWidget::initializeGL() {
     bbMax[0] = bbMax[1] = bbMax[2] = -std::numeric_limits<double>::infinity();
     center[0] = center[1] = center[2] = 0.0;
     zoom = 1.0;
+}
+
+void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,const QVector3D color) {
+    QVector3D d=c1-c2;
+    QVector3D a(0,0,1);
+    QVector3D rot = QVector3D::crossProduct(d,a);
+    QMatrix4x4 M(modelView);
+    M.translate(c1);
+
+    //M.rotate(acos(QVector3D::dotProduct(d,a)/a.length()*d.length()),QVector3D::crossProduct(d.normalized(),a.normalized()));
+    M.rotate(asin(rot.length()/(a.length()*d.length()))*180/M_PI,rot.normalized());
+    M.scale(r,r,(d).length());
+
+    const int t = materialType;
+    p_Phong.bind();
+    p_Phong.setUniformValue("uMVMat", M);
+    p_Phong.setUniformValue("uNMat", M.normalMatrix());
+    /*
+    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[t][6],material[t][7],material[t][8]));
+    p_Phong.setUniformValue("uShininess",material[t][9]);
+    */
+    //p_Phong.setUniformValue("uDiffuse",color);
+
+    p_Phong.setUniformValue("uAmbient",color);
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[0][3],material[0][4],material[0][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[0][6],material[0][7],material[0][8]));
+    p_Phong.setUniformValue("uShininess",material[0][9]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboCylinderId);
+    int vertexLocation = p_Phong.attributeLocation("a_position");
+    p_Phong.enableAttributeArray(vertexLocation);
+    glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), 0);
+    int normalLocation = p_Phong.attributeLocation("a_normal");
+    p_Phong.enableAttributeArray(normalLocation);
+    glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
+
+    glDrawArrays(GL_TRIANGLE_STRIP,0,vboCylinderSize);
 }
 
 void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D color) {
@@ -822,12 +862,13 @@ void MyGLWidget::paintGL() {
 
         for(int i=0;i<m.parts.size();i++){
             for(int j=0;j<m.parts[i].elements.size();j++){
-            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/300,m.parts.at(i).elements[j].color);
+            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/100,m.parts.at(i).elements[j].color);
             }
         }
 
     if (m.parts.size()==0)
-        drawSolidSphere(QVector3D(0,0,0),1,QVector3D(1,0,0));
+        //drawSolidSphere(QVector3D(0,0,0),1,QVector3D(0.2,0.2,0.2));
+        drawCylinder(QVector3D(0,0,0),QVector3D(2,2,0),1,QVector3D(0.1,0.1,0.1));
     drawTriangleSets();
     }
 
