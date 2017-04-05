@@ -73,10 +73,12 @@ void CGMainWindow::loadHin(){
                std::string name;
                std::istringstream f(temp);
                std::string str;
+               int len;
+               std::string dummy;
                int counter =0;
                std::vector<std::pair<int,std::string>> seanconnery;
                while (getline(f, str, ' ')) {
-                   std::string dummy;
+
                    if(counter==3){
                        std::stringstream sstr;
                        sstr << str;
@@ -97,13 +99,28 @@ void CGMainWindow::loadHin(){
                        sstr << str;
                        sstr >> z;
                    }
-                   //if(counter==)
-
+                   /*if(counter==10){
+                       std::stringstream sstr;
+                       sstr<< str;
+                       sstr>>len;
+                   }*/
+                   if(counter>10&&counter%2==1){
+                       std::stringstream sstr;
+                       sstr<<str;
+                       sstr>>len;
+                   }
+                   if(counter>10&&counter%2==0){
+                       std::stringstream sstr;
+                       sstr<<str;
+                       sstr>>dummy;
+                       seanconnery.push_back({len,dummy});
+                       std::cout<<seanconnery[0].first<<"\n";
+                   }
                    counter++;
 
                }
 
-               atom a{name,QVector3D{x,y,z}};
+               atom a{name,QVector3D{x,y,z},0.0,seanconnery};
                r.elements.push_back(a);
             }
 
@@ -143,7 +160,7 @@ void CGMainWindow::loadHin(){
                     ogl->m.parts[i].elements[j].radius=std::get<1>(vec[k]);
                     ogl->m.parts[i].elements[j].color=std::get<2>(vec[k]);
                     //std::cout<<ogl->m.parts[i].elements[j].radius;
-                    std::cout<<ogl->m.parts[i].elements[j].color.x()<<", "<<ogl->m.parts[i].elements[j].color.y()<<", "<<ogl->m.parts[i].elements[j].color.z()<<"\n";
+                    //std::cout<<ogl->m.parts[i].elements[j].color.x()<<", "<<ogl->m.parts[i].elements[j].color.y()<<", "<<ogl->m.parts[i].elements[j].color.z()<<"\n";
                 }
             }
         }
