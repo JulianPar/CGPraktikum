@@ -600,11 +600,14 @@ void MyGLWidget::initializeGL() {
 }
 
 void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,const QVector3D color) {
+
+
     QVector3D d=c1-c2;
     QVector3D a(0,0,1);
     QVector3D rot = QVector3D::crossProduct(d,a);
     QMatrix4x4 M(modelView);
     M.translate(c1);
+
 
     //M.rotate(acos(QVector3D::dotProduct(d,a)/a.length()*d.length()),QVector3D::crossProduct(d.normalized(),a.normalized()));
     M.rotate(asin(rot.length()/(a.length()*d.length()))*180/M_PI,rot.normalized());
@@ -860,15 +863,57 @@ void MyGLWidget::paintGL() {
     if(m.parts.size()!=0)
 
 
-        for(int i=0;i<m.parts.size();i++){
-            for(int j=0;j<m.parts[i].elements.size();j++){
-            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/100,m.parts.at(i).elements[j].color);
-            }
+    for(int i=0;i<m.parts.size();i++){
+        for(int j=0;j<m.parts[i].elements.size();j++){
+            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/200,m.parts.at(i).elements[j].color);
         }
+    }
 
-    if (m.parts.size()==0)
-        //drawSolidSphere(QVector3D(0,0,0),1,QVector3D(0.2,0.2,0.2));
-        drawCylinder(QVector3D(0,0,0),QVector3D(2,2,0),1,QVector3D(0.1,0.1,0.1));
+    for(int i=0;i<m.parts.size();i++){
+        for(int j=0;j<m.parts[i].elements.size();j++){
+            QVector3D pos1 = m.parts[i].elements[j].pos;
+
+            for(int k=0;k<m.parts[i].elements[j].bonds.size();k++){
+                int iBond = m.parts[i].elements[j].bonds[k].first;
+                QVector3D pos2;
+
+                for(int saruman=0;saruman<m.parts.size();saruman++){
+                    for(int countdoku=0;countdoku<m.parts[saruman].elements.size();countdoku++){
+                            if(m.parts[saruman].elements[countdoku].index==iBond){
+                                pos2 = m.parts[saruman].elements[countdoku].pos;
+                                //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
+                                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
+                            }
+                        }
+                }
+
+
+
+            }
+
+        }
+    }
+    /*
+
+    for(int i=0;i<atoms.size();i++){
+        for(int j=i;j<atoms[i].bonds.size();j++){
+            int iBond = atoms[i].bonds[j].first;
+            QVector3D pos1 = atoms[i].pos;
+            QVector3D pos2 = atoms[iBond-1].pos;
+            drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
+        }
+    }
+*/
+
+
+    if (m.parts.size()==0){
+        drawSolidSphere(QVector3D(1,0,0),1,QVector3D(0.2,0.2,0.2));
+        drawSolidSphere(QVector3D(0,2,3),1,QVector3D(0.2,0.2,0.2));
+        drawCylinder(QVector3D(1,0,0),QVector3D(0,2,3),0.5,QVector3D(0.1,0.1,0.1));
+        drawCylinder(QVector3D(0,2,3),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
+        //drawSolidSphere(QVector3D(0,3,0),1,QVector3D(0.2,0.2,0.2));
+       // drawCylinder(QVector3D(0,3,0),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
+    }
     drawTriangleSets();
     }
 
