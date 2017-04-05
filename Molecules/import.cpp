@@ -116,14 +116,17 @@ void CGMainWindow::loadHin(){
     std::cout<<"Loading Radius"<<std::endl;
 
     std::ifstream ist(fn2.toLatin1(),std::ios::binary);
-    std::vector<std::pair<std::string,float>> vec;
+    std::vector<std::tuple<std::string,float,QVector3D>> vec;
     if(ist.is_open()){
        while(!ist.eof()){
            float value;
            std::string key;
+           float r,g,b;
            ist>>key>>value;
+           ist >>r>>g>>b;
+           QVector3D v {r,g,b};
            std::cout<<key<<", "<<value<<"\n";
-           std::pair<std::string,float> ma{key,value};
+           std::tuple<std::string,float,QVector3D> ma{key,value,v};
            vec.push_back(ma);
        }
     }
@@ -133,12 +136,14 @@ void CGMainWindow::loadHin(){
     std::cout<<"change atom size"<<"\n";
     for(int i=0;i<ogl->m.parts.size();i++){
         for(int j=0;j<ogl->m.parts[i].elements.size();j++){
-             std::cout<<"change atom sizei"<<"\n";
+             //std::cout<<"change atom sizei"<<"\n";
             for(int k=0;k<vec.size();k++){
                 std::string nam=ogl->m.parts[i].elements[j].name;
-                if(nam==vec[k].first){
-                    ogl->m.parts[i].elements[j].radius=vec[k].second;
-                    std::cout<<ogl->m.parts[i].elements[j].radius;
+                if(nam==std::get<0>(vec[k])){
+                    ogl->m.parts[i].elements[j].radius=std::get<1>(vec[k]);
+                    ogl->m.parts[i].elements[j].color=std::get<2>(vec[k]);
+                    //std::cout<<ogl->m.parts[i].elements[j].radius;
+                    std::cout<<ogl->m.parts[i].elements[j].color.x()<<", "<<ogl->m.parts[i].elements[j].color.y()<<", "<<ogl->m.parts[i].elements[j].color.z()<<"\n";
                 }
             }
         }
