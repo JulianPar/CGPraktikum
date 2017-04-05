@@ -782,7 +782,7 @@ void MyGLWidget::paintGL() {
 
         for(int i=0;i<m.parts.size();i++){
             for(int j=0;j<m.parts[i].elements.size();j++){
-            drawSolidSphere(m.parts.at(i).elements[j].pos,0.5);
+            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/300);
             }
         }
 
