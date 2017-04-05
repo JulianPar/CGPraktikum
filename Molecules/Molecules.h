@@ -14,6 +14,7 @@
 #include <QOpenGLTexture>
 
 struct atom{
+    int index;
     std::string name;
     QVector3D pos;
     float radius;
@@ -126,7 +127,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
     void drawSolidSphere(const QVector3D&,float,const QVector3D);
-    void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
+    void drawCylinder(const QVector3D&,const QVector3D&,float);
     void drawTriangleSets();
 
     CGMainWindow *main;

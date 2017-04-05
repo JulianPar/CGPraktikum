@@ -73,11 +73,16 @@ void CGMainWindow::loadHin(){
                std::string name;
                std::istringstream f(temp);
                std::string str;
-               int len;
+               int len,ind;
                std::string dummy;
                int counter =0;
                std::vector<std::pair<int,std::string>> seanconnery;
                while (getline(f, str, ' ')) {
+                   if(counter==1){
+                       std::stringstream sstr;
+                       sstr << str;
+                       sstr>>ind;
+                   }
 
                    if(counter==3){
                        std::stringstream sstr;
@@ -114,13 +119,14 @@ void CGMainWindow::loadHin(){
                        sstr<<str;
                        sstr>>dummy;
                        seanconnery.push_back({len,dummy});
-                       std::cout<<seanconnery[0].first<<"\n";
+                       //std::cout<<seanconnery[0].first<<"\n";
                    }
                    counter++;
 
                }
 
-               atom a{name,QVector3D{x,y,z},0.0,seanconnery};
+               atom a{ind,name,QVector3D{x,y,z},0.0,seanconnery,QVector3D{0,0,0}};
+               std::cout<<"yesss";
                r.elements.push_back(a);
             }
 
@@ -134,6 +140,7 @@ void CGMainWindow::loadHin(){
 
     std::ifstream ist(fn2.toLatin1(),std::ios::binary);
     std::vector<std::tuple<std::string,float,QVector3D>> vec;
+    int count=0;
     if(ist.is_open()){
        while(!ist.eof()){
            float value;
@@ -145,6 +152,7 @@ void CGMainWindow::loadHin(){
            std::cout<<key<<", "<<value<<"\n";
            std::tuple<std::string,float,QVector3D> ma{key,value,v};
            vec.push_back(ma);
+           std::cout<<count++<<"\n";
        }
     }
     else{
@@ -155,6 +163,7 @@ void CGMainWindow::loadHin(){
         for(int j=0;j<ogl->m.parts[i].elements.size();j++){
              //std::cout<<"change atom sizei"<<"\n";
             for(int k=0;k<vec.size();k++){
+                std::cout<<"i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
                 std::string nam=ogl->m.parts[i].elements[j].name;
                 if(nam==std::get<0>(vec[k])){
                     ogl->m.parts[i].elements[j].radius=std::get<1>(vec[k]);
@@ -162,6 +171,7 @@ void CGMainWindow::loadHin(){
                     //std::cout<<ogl->m.parts[i].elements[j].radius;
                     //std::cout<<ogl->m.parts[i].elements[j].color.x()<<", "<<ogl->m.parts[i].elements[j].color.y()<<", "<<ogl->m.parts[i].elements[j].color.z()<<"\n";
                 }
+
             }
         }
     }
