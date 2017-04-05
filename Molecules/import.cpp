@@ -74,7 +74,7 @@ void CGMainWindow::loadHin(){
                std::istringstream f(temp);
                std::string str;
                int counter =0;
-
+               std::vector<std::pair<int,std::string>> seanconnery;
                while (getline(f, str, ' ')) {
                    std::string dummy;
                    if(counter==3){
@@ -97,6 +97,7 @@ void CGMainWindow::loadHin(){
                        sstr << str;
                        sstr >> z;
                    }
+                   //if(counter==)
 
                    counter++;
 

@@ -17,7 +17,7 @@ struct atom{
     std::string name;
     QVector3D pos;
     float radius;
-    std::vector<pair<int,std::string>> bonds;
+    std::vector<std::pair<int,std::string>> bonds;
 
 
 };
