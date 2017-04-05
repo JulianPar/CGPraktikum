@@ -18,7 +18,7 @@ struct atom{
     QVector3D pos;
     float radius;
     std::vector<std::pair<int,std::string>> bonds;
-
+    QVector3D color;
 
 };
 
@@ -87,7 +87,7 @@ public:
     void loadStlFile(std::vector<QVector3D>&, const char*);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&); 
     void initSolidSphereVBO();
-    void initLineVBO();
+    void initCylinderVBO();
     void initTrianglesVBO(const std::vector<QVector3D>&);
     void initSmoothTrianglesVBO(const std::vector<QVector3D>&);
     void updateBoundingBox(const std::vector<QVector3D>&);
@@ -113,8 +113,8 @@ public:
     int viewMode = 1, materialType = 0;
     std::vector<std::vector<QVector3D> > triangleSet;
     std::vector<GLuint> vboTriangleSetId;
-    GLuint vboSolidSphereId;
-    int vboSolidSphereSize;
+    GLuint vboSolidSphereId, vboCylinderId;
+    int vboSolidSphereSize, vboCylinderSize;
 
 protected:
 
@@ -125,7 +125,8 @@ protected:
     void mousePressEvent(QMouseEvent*);
     void mouseReleaseEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
-    void drawSolidSphere(const QVector3D&,float);
+    void drawSolidSphere(const QVector3D&,float,const QVector3D);
+    void drawCylinder(const QVector3D&,const QVector3D&,float);
     void drawTriangleSets();
 
     CGMainWindow *main;

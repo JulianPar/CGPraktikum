@@ -399,9 +399,41 @@ void MyGLWidget::initSolidSphereVBO() {
     vboSolidSphereSize = static_cast<int>(ico.size());
 }
 
-//void MyGLWidget::initLineSphereVBO(){
+void MyGLWidget::initCylinderVBO(){
 
-//}
+    std::vector<QVector3D> ico;
+
+    int n=100;
+
+    for(int i=0; i<=n; i++){
+
+        float theta = (float)i* (2*M_PI/n);
+
+        // Vertex
+        float vertX = cos(theta);
+        float vertY = sin(theta);
+        QVector3D(vertX,-1,vertY);
+
+        ico.push_back(QVector3D(vertX,-1,vertY));
+        ico.push_back(QVector3D(vertX,1,vertY));
+
+    }
+
+    std::vector<QVector3D> vertexWithNormal;
+    GLuint id;
+    glGenBuffers(1,&id);
+
+    for(size_t i=0;i<ico.size();i++) {
+        vertexWithNormal.push_back(ico[i]);
+        vertexWithNormal.push_back(ico[i]);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER,id);
+    glBufferData(GL_ARRAY_BUFFER,vertexWithNormal.size()*sizeof(QVector3D),vertexWithNormal.data(),GL_STATIC_DRAW);
+
+    vboCylinderId = id;
+    vboCylinderSize = static_cast<int>(ico.size());
+}
 
 void MyGLWidget::initTrianglesVBO(const std::vector<QVector3D>& vertices) {
     std::vector<QVector3D> vertexWithNormal;
@@ -566,7 +598,7 @@ void MyGLWidget::initializeGL() {
     zoom = 1.0;
 }
 
-void MyGLWidget::drawSolidSphere(const QVector3D& c, float r) {
+void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D color) {
     QMatrix4x4 M(modelView);
     M.translate(c); 
     M.scale(r);
@@ -575,10 +607,18 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r) {
     p_Phong.bind();
     p_Phong.setUniformValue("uMVMat", M);
     p_Phong.setUniformValue("uNMat", M.normalMatrix());
-    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
+    /*
+    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));  
     p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
     p_Phong.setUniformValue("uSpecular",QVector3D(material[t][6],material[t][7],material[t][8]));
     p_Phong.setUniformValue("uShininess",material[t][9]);
+    */
+    //p_Phong.setUniformValue("uDiffuse",color);
+
+    p_Phong.setUniformValue("uAmbient",color);
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[0][3],material[0][4],material[0][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[0][6],material[0][7],material[0][8]));
+    p_Phong.setUniformValue("uShininess",material[0][9]);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboSolidSphereId);
     int vertexLocation = p_Phong.attributeLocation("a_position");
@@ -782,12 +822,12 @@ void MyGLWidget::paintGL() {
 
         for(int i=0;i<m.parts.size();i++){
             for(int j=0;j<m.parts[i].elements.size();j++){
-            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/300);
+            drawSolidSphere(m.parts.at(i).elements[j].pos,m.parts.at(i).elements[j].radius/300,m.parts.at(i).elements[j].color);
             }
         }
 
     if (m.parts.size()==0)
-        drawSolidSphere(QVector3D(0,0,0),1);
+        drawSolidSphere(QVector3D(0,0,0),1,QVector3D(1,0,0));
     drawTriangleSets();
     }
 

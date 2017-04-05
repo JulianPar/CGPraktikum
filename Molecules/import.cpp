@@ -124,7 +124,7 @@ void CGMainWindow::loadHin(){
            float r,g,b;
            ist>>key>>value;
            ist >>r>>g>>b;
-           QVector3D v {r,g,b};
+           QVector3D v {r/255,g/255,b/255};
            std::cout<<key<<", "<<value<<"\n";
            std::tuple<std::string,float,QVector3D> ma{key,value,v};
            vec.push_back(ma);
