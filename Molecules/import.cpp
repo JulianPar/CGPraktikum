@@ -110,7 +110,12 @@ void CGMainWindow::loadHin(){
         }
     ogl->m.parts.push_back(r);
     }
-    std::ifstream ist{"C:/Users/AlexP/Desktop/CG/Molecules/atomic_radius.txt"};
+
+    QString fn2 = QFileDialog::getOpenFileName(this, "Load Ice Cube Data ...", QString(), "txt files (*.txt)" );
+    if (fn2.isEmpty()) return;
+    std::cout<<"Loading Radius"<<std::endl;
+
+    std::ifstream ist(fn2.toLatin1(),std::ios::binary);
     std::vector<std::pair<std::string,float>> vec;
     if(ist.is_open()){
        while(!ist.eof()){
