@@ -12,6 +12,8 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <assimp/scene.h>
+#include <OVR_CAPI_GL.h>
 
 struct atom{
     int index;
@@ -79,12 +81,12 @@ class MyGLWidget : public QOpenGLWidget, public QOpenGLFunctions {
     Q_OBJECT
 
 public:
-
+    const aiScene* scene = NULL;
     MyGLWidget(CGMainWindow*,QWidget*);
     void initShaders();
     void initMaterials();
     void initializeGL();
-
+    void initializeOVR();
     void loadStlFile(std::vector<QVector3D>&, const char*);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&); 
     void initSolidSphereVBO();
@@ -95,7 +97,7 @@ public:
     void pickLine(int,int,QVector3D&,QVector3D&);
     double intersectTriangle(const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&);
     double intersectTriangleSets(const QVector3D&,const QVector3D&,int&,int&);
-
+    void recursive_render(const aiScene*,const aiNode*,QMatrix4x4);
     QVector2D worldCoord(int,int);
     QVector3D mouseToTrackball(int,int);
     // QQuaternion trackball(const QVector3D&,const QVector3D&);
@@ -106,6 +108,16 @@ public:
     QVector3D center,bbMin,bbMax;
     // QQuaternion qNow;
     QMatrix4x4 RNow;
+
+    ovrHmdDesc hmdDesc;
+    ovrTextureSwapChain textureChain[2];
+    ovrMirrorTexture mirrorTexture;
+    GLuint depthId[2];
+    GLuint fboId[2];
+    GLuint mirrorId, mirrorFBO;
+    ovrSizei mirrorSize; // The size of the texture containing a mirror view of the HMD display
+    ovrSizei idealTextureSize;
+    long long frameIndex = 0;
 
     std::vector<atom> atoms;
     molecule m;
@@ -135,7 +147,8 @@ protected:
     // float phi = 30.0, theta = 10.0;
 
 private:
-
+    ovrSession session;
+    QOpenGLShaderProgram p_Diffuse;
     QOpenGLShaderProgram p_Phong;
     QMatrix4x4 projection,modelView;
 };
