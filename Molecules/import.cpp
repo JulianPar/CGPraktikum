@@ -31,16 +31,18 @@ void CGMainWindow::loadHin(){
             lines.push_back(st);
         }
     }
+    std::cout<<"molecule1 \n";
     //find the start and end of a molecule
     std::vector<int> begin;
     std::vector<int> end;
     for(int i = 0; i< lines.size(); i++){
+        std::cout<<"molecule \n";
         std::string temp = lines[i];
         std::cout << temp << "\n";
         if(temp.substr(0,3) == "mol"){
             begin.push_back(i);
-            molecule m{temp};
-            ogl->struc.mols.push_back(m);
+            //molecule m{temp};
+            //ogl->struc.mols.push_back(m);
         }
         if(temp.substr(0,6) == "endmol"){
             end.push_back(i);
@@ -60,7 +62,11 @@ void CGMainWindow::loadHin(){
             if(temp.substr(0,6)=="endres"){
                 endr.push_back(j);
             }
+        }
+        for(int j = begin[monster]; j < end[monster]; j++){
+            molecule m;
             for(int dracula=0;dracula<beginr.size();dracula++){
+                std::cout<<"reached residue \n";
                 residue r;
                 r.rname=lines[beginr[dracula]];
                 std::cout<<r.rname<<"\n";
@@ -76,6 +82,8 @@ void CGMainWindow::loadHin(){
                        std::string dummy;
                        int counter =0;
                        std::vector<std::pair<int,std::string>> seanconnery;
+
+                       //splitting one line
                        while (getline(f, str, ' ')) {
                            if(counter==1){
                                std::stringstream sstr;
@@ -128,10 +136,14 @@ void CGMainWindow::loadHin(){
                        std::cout<<"yesss";
                        r.elements.push_back(a);
                     }
-                ogl->struc.mols[monster].parts.push_back(r);
-                }
-         }
 
+
+
+                }
+                 m.parts.push_back(r);
+
+         }
+        ogl->struc.mols.push_back(m);
     }
     }
 
@@ -164,7 +176,7 @@ void CGMainWindow::loadHin(){
         for(int i=0;i<ogl->struc.mols[h].parts.size();i++){
             for(int j=0;j<ogl->struc.mols[h].parts[i].elements.size();j++){
                 for(int k=0;k<vec.size();k++){
-                    std::cout<<"i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
+                    std::cout<<"h:"<<h<<" i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
                     std::string nam=ogl->struc.mols[h].parts[i].elements[j].name;
                     if(nam==std::get<0>(vec[k])){
                         ogl->struc.mols[h].parts[i].elements[j].radius=std::get<1>(vec[k]);
