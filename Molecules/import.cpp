@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <limits>
+
 #include "Molecules.h";
 void CGMainWindow::loadHin(){
 
@@ -31,12 +32,12 @@ void CGMainWindow::loadHin(){
             lines.push_back(st);
         }
     }
-    std::cout<<"molecule1 \n";
+    //std::cout<<"molecule1 \n";
     //find the start and end of a molecule
     std::vector<int> begin;
     std::vector<int> end;
     for(int i = 0; i< lines.size(); i++){
-        std::cout<<"molecule \n";
+        //std::cout<<"molecule \n";
         std::string temp = lines[i];
         std::cout << temp << "\n";
         if(temp.substr(0,3) == "mol"){
@@ -48,10 +49,12 @@ void CGMainWindow::loadHin(){
             end.push_back(i);
         }
     }
+    std::cout<<"begin: "<<begin.size()<<"\n";
      //find out where all the residues of one molecule start and end
     for(int monster=0;monster<begin.size();monster++){
         std::vector<int> beginr;//a vector storing all starts of the residues
         std::vector<int> endr;
+        std::cout<<"monster:"<<monster<<"\n";
         for(int j = begin[monster]; j < end[monster]; j++){
 
             std::string temp = lines[j];
@@ -63,18 +66,21 @@ void CGMainWindow::loadHin(){
                 endr.push_back(j);
             }
         }
-        for(int j = begin[monster]; j < end[monster]; j++){
-            molecule m;
-            for(int dracula=0;dracula<beginr.size();dracula++){
+        //std::cout<<"beginr.size: "<<beginr.size()<<"\n";
+        //std::cout<<"end[monster]: "<<end[monster]<<"\n";
+        molecule m;
+
+        for(int dracula=0;dracula<beginr.size();dracula++){
                 std::cout<<"reached residue \n";
                 residue r;
                 r.rname=lines[beginr[dracula]];
                 std::cout<<r.rname<<"\n";
+                //std::cout<<"beginr[dracula]: "<<beginr[dracula]<<"\n";
+                //std::cout<<"endr[dracula]: "<<endr[dracula]<<"\n";
                 for(int fumanchu =beginr[dracula];fumanchu<endr[dracula];fumanchu++){
                     std::string temp=lines[fumanchu];
                     if(temp.substr(0,4) == "atom"){
-
-                       float i,x,y,z;
+                       float x,y,z;
                        std::string name;
                        std::istringstream f(temp);
                        std::string str;
@@ -131,20 +137,16 @@ void CGMainWindow::loadHin(){
                            counter++;
 
                        }
-
                        atom a{ind,name,QVector3D{x,y,z},0.0,seanconnery,QVector3D{0,0,0}};
                        std::cout<<"yesss";
                        r.elements.push_back(a);
+
                     }
-
-
-
                 }
-                 m.parts.push_back(r);
+              m.parts.push_back(r);
 
-         }
-        ogl->struc.mols.push_back(m);
-    }
+             }
+ogl->struc.mols.push_back(m);
     }
 
     QString fn2 = QFileDialog::getOpenFileName(this, "Load Ice Cube Data ...", QString(), "txt files (*.txt)" );
@@ -176,7 +178,7 @@ void CGMainWindow::loadHin(){
         for(int i=0;i<ogl->struc.mols[h].parts.size();i++){
             for(int j=0;j<ogl->struc.mols[h].parts[i].elements.size();j++){
                 for(int k=0;k<vec.size();k++){
-                    std::cout<<"h:"<<h<<" i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
+                    //std::cout<<"h:"<<h<<" i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
                     std::string nam=ogl->struc.mols[h].parts[i].elements[j].name;
                     if(nam==std::get<0>(vec[k])){
                         ogl->struc.mols[h].parts[i].elements[j].radius=std::get<1>(vec[k]);
@@ -186,6 +188,7 @@ void CGMainWindow::loadHin(){
             }
         }
     }
+    std::cout<<"finished loading"<<"\n";
     ogl->flag = true;
     ogl->update();
 }

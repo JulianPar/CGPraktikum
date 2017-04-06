@@ -33,11 +33,12 @@ struct residue{
 struct molecule{
     std::string name;
     std::vector<residue> parts;
+    std::vector<QVector3D> positions;
 };
-
 struct structure{
     std::vector<molecule> mols;
 };
+
 
 class MyGLWidget;
 
@@ -88,7 +89,7 @@ public:
     void initShaders();
     void initMaterials();
     void initializeGL();
-    void initializeOVR();
+    //void initializeOVR();
     void loadStlFile(std::vector<QVector3D>&, const char*);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&); 
     void initSolidSphereVBO();
@@ -111,7 +112,7 @@ public:
     // QQuaternion qNow;
     QMatrix4x4 RNow;
 
-   // ovrHmdDesc hmdDesc;
+    //ovrHmdDesc hmdDesc;
     //ovrTextureSwapChain textureChain[2];
     //ovrMirrorTexture mirrorTexture;
     GLuint depthId[2];
@@ -134,6 +135,7 @@ public:
 protected:
 
     void paintGL();
+    void paintGLVR();
     void resizeGL(int,int);
 
     void mouseMoveEvent(QMouseEvent*);
@@ -143,8 +145,7 @@ protected:
     void drawSolidSphere(const QVector3D&,float,const QVector3D);
     void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
     void drawTriangleSets();
-    void drawMolecule(molecule mol);
-
+    void drawMolecule(molecule);
     CGMainWindow *main;
     int mouseX,mouseY,button;
     // float phi = 30.0, theta = 10.0;
