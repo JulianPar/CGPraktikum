@@ -701,7 +701,39 @@ void MyGLWidget::drawTriangleSets() {
     }
 }
 
-void MyGLWidget::drawMolecule(){
+void MyGLWidget::drawMolecule(molecule mol){
+
+    for(int i=0;i<mol.parts.size();i++){
+        for(int j=0;j<mol.parts[i].elements.size();j++){
+            drawSolidSphere(mol.parts.at(i).elements[j].pos,mol.parts.at(i).elements[j].radius/200,mol.parts.at(i).elements[j].color);
+        }
+    }
+
+
+    for(int i=0;i<mol.parts.size();i++){
+        for(int j=0;j<mol.parts[i].elements.size();j++){
+            QVector3D pos1 = mol.parts[i].elements[j].pos;
+
+            for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
+                int iBond = mol.parts[i].elements[j].bonds[k].first;
+                QVector3D pos2;
+
+                for(int saruman=0;saruman<mol.parts.size();saruman++){
+                    for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
+                            if(mol.parts[saruman].elements[countdoku].index==iBond){
+                                pos2 = mol.parts[saruman].elements[countdoku].pos;
+                                //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
+                                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
+                            }
+                        }
+                }
+
+
+
+            }
+
+        }
+    }
 
 }
 
@@ -866,7 +898,11 @@ void MyGLWidget::paintGL() {
     } else {
 
 
+    for(int h=0;h<struc.mols.size();h++){
+        drawMolecule(struc.mols[h]);
+    }
 
+/*
     for(int h=0;h<struc.mols.size();h++){
         for(int i=0;i<struc.mols[h].parts.size();i++){
             for(int j=0;j<struc.mols[h].parts[i].elements.size();j++){

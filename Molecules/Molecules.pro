@@ -7,7 +7,7 @@ QT += core gui widgets
 RESOURCES += shaders.qrc
 HEADERS += Molecules.h
 SOURCES += Molecules.cpp \
-    import.cpp \
+    import.cpp
     virtualreality.cpp
 
 win32:INCLUDEPATH += C:/assimp-3.3.1/include

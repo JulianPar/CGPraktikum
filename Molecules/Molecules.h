@@ -12,8 +12,8 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
-#include <assimp/scene.h>
-#include <OVR_CAPI_GL.h>
+//#include <assimp/scene.h>
+//#include <OVR_CAPI_GL.h>
 
 struct atom{
     int index;
@@ -35,7 +35,9 @@ struct molecule{
     std::vector<residue> parts;
 };
 
-
+struct structure{
+    std::vector<molecule> mols;
+};
 
 class MyGLWidget;
 
@@ -81,7 +83,7 @@ class MyGLWidget : public QOpenGLWidget, public QOpenGLFunctions {
     Q_OBJECT
 
 public:
-    const aiScene* scene = NULL;
+    //const aiScene* scene = NULL;
     MyGLWidget(CGMainWindow*,QWidget*);
     void initShaders();
     void initMaterials();
@@ -97,7 +99,7 @@ public:
     void pickLine(int,int,QVector3D&,QVector3D&);
     double intersectTriangle(const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&);
     double intersectTriangleSets(const QVector3D&,const QVector3D&,int&,int&);
-    void recursive_render(const aiScene*,const aiNode*,QMatrix4x4);
+    //void recursive_render(const aiScene*,const aiNode*,QMatrix4x4);
     QVector2D worldCoord(int,int);
     QVector3D mouseToTrackball(int,int);
     // QQuaternion trackball(const QVector3D&,const QVector3D&);
@@ -109,18 +111,18 @@ public:
     // QQuaternion qNow;
     QMatrix4x4 RNow;
 
-    ovrHmdDesc hmdDesc;
-    ovrTextureSwapChain textureChain[2];
-    ovrMirrorTexture mirrorTexture;
+   // ovrHmdDesc hmdDesc;
+    //ovrTextureSwapChain textureChain[2];
+    //ovrMirrorTexture mirrorTexture;
     GLuint depthId[2];
     GLuint fboId[2];
     GLuint mirrorId, mirrorFBO;
-    ovrSizei mirrorSize; // The size of the texture containing a mirror view of the HMD display
-    ovrSizei idealTextureSize;
+    //ovrSizei mirrorSize; // The size of the texture containing a mirror view of the HMD display
+    //ovrSizei idealTextureSize;
     long long frameIndex = 0;
 
     std::vector<atom> atoms;
-    molecule m;
+    structure struc;
     bool flag;
 
     int viewMode = 1, materialType = 0;
@@ -141,13 +143,14 @@ protected:
     void drawSolidSphere(const QVector3D&,float,const QVector3D);
     void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
     void drawTriangleSets();
+    void drawMolecule(molecule mol);
 
     CGMainWindow *main;
     int mouseX,mouseY,button;
     // float phi = 30.0, theta = 10.0;
 
 private:
-    ovrSession session;
+    //ovrSession session;
     QOpenGLShaderProgram p_Diffuse;
     QOpenGLShaderProgram p_Phong;
     QMatrix4x4 projection,modelView;
