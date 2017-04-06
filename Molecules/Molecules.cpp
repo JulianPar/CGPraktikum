@@ -194,7 +194,7 @@ MyGLWidget::MyGLWidget(CGMainWindow *mainwindow,QWidget* parent ) : QOpenGLWidge
 void loadStlFile(std::vector<QVector3D>& vertices, const char *filename) {
     std::ifstream instream(filename,std::ios::binary);
     if (!instream) {
-	std::cerr << "file does not exist!" << std::endl;
+    std::cerr << "file does not exist!" << std::endl;
         return;
     }
 
@@ -263,27 +263,27 @@ void MyGLWidget::refineSolidSphere(const std::vector<QVector3D>& sphere,std::vec
         const QVector3D& a = sphere[3*i+0];
         const QVector3D& b = sphere[3*i+1];
         const QVector3D& c = sphere[3*i+2];
-        
+
         QVector3D ab = a+b;
         QVector3D bc = b+c;
         QVector3D ca = c+a;
-        
+
         ab.normalize();
         bc.normalize();
         ca.normalize();
-        
+
         refined.push_back(a);
         refined.push_back(ab);
         refined.push_back(ca);
-        
+
         refined.push_back(ab);
         refined.push_back(b);
         refined.push_back(bc);
-        
+
         refined.push_back(bc);
         refined.push_back(c);
         refined.push_back(ca);
-        
+
         refined.push_back(ab);
         refined.push_back(bc);
         refined.push_back(ca);
@@ -296,85 +296,85 @@ void MyGLWidget::initSolidSphereVBO() {
 
     ico.push_back( QVector3D(gr,1.0,0.0));
     ico.push_back( QVector3D(1.0,0.0,gr));
-    ico.push_back( QVector3D(gr,-1.0,0.0)); 
-    
+    ico.push_back( QVector3D(gr,-1.0,0.0));
+
     ico.push_back( QVector3D(gr,1.0,0.0));
     ico.push_back( QVector3D(gr,-1.0,0.0));
     ico.push_back( QVector3D(1.0,0.0,-gr));
-    
+
     ico.push_back( QVector3D(gr,1.0,0.0));
     ico.push_back( QVector3D(0.0,gr,-1.0));
     ico.push_back( QVector3D(0.0,gr,1.0));
-    
+
     ico.push_back( QVector3D(gr,1.0,0.0));
     ico.push_back( QVector3D(0.0,gr,1.0));
     ico.push_back( QVector3D(1.0,0.0,gr));
-    
+
     ico.push_back( QVector3D(gr,1.0,0.0));
     ico.push_back( QVector3D(1.0,0.0,-gr));
     ico.push_back( QVector3D(0.0,gr,-1.0));
-    
+
     ico.push_back( QVector3D(-gr,-1.0,0.0));
     ico.push_back( QVector3D(-1.0,0.0,gr));
     ico.push_back( QVector3D(-gr,1.0,0.0));
-    
+
     ico.push_back( QVector3D(-gr,-1.0,0.0));
     ico.push_back( QVector3D(-gr,1.0,0.0));
     ico.push_back( QVector3D(-1.0,0.0,-gr));
-    
+
     ico.push_back( QVector3D(-gr,-1.0,0.0));
     ico.push_back( QVector3D(0.0,-gr,-1.0));
     ico.push_back( QVector3D(0.0,-gr,1.0));
-    
+
     ico.push_back( QVector3D(-gr,-1.0,0.0));
     ico.push_back( QVector3D(0.0,-gr,1.0));
     ico.push_back( QVector3D(-1.0,0.0,gr));
-    
+
     ico.push_back( QVector3D(-gr,-1.0,0.0));
     ico.push_back( QVector3D(-1.0,0.0,-gr));
     ico.push_back( QVector3D(0.0,-gr,-1.0));
-    
+
     ico.push_back( QVector3D(1.0,0.0,gr));
     ico.push_back( QVector3D(-1.0,0.0,gr));
     ico.push_back( QVector3D(0.0,-gr,1.0));
-    
+
     ico.push_back( QVector3D(1.0,0.0,gr));
     ico.push_back( QVector3D(0.0,gr,1.0));
     ico.push_back( QVector3D(-1.0,0.0,gr));
-    
+
     ico.push_back( QVector3D(0.0,gr,1.0));
     ico.push_back( QVector3D(-gr,1.0,0.0));
     ico.push_back( QVector3D(-1.0,0.0,gr));
-    
+
     ico.push_back( QVector3D(0.0,gr,1.0));
     ico.push_back( QVector3D(0.0,gr,-1.0));
     ico.push_back( QVector3D(-gr,1.0,0.0));
-    
+
     ico.push_back( QVector3D(0.0,gr,-1.0));
     ico.push_back( QVector3D(-1.0,0.0,-gr));
     ico.push_back( QVector3D(-gr,1.0,0.0));
-    
+
     ico.push_back( QVector3D(-1.0,0.0,-gr));
     ico.push_back( QVector3D(0.0,gr,-1.0));
     ico.push_back( QVector3D(1.0,0.0,-gr));
-    
+
     ico.push_back( QVector3D(-1.0,0.0,-gr));
     ico.push_back( QVector3D(1.0,0.0,-gr));
     ico.push_back( QVector3D(0.0,-gr,-1.0));
-    
+
     ico.push_back( QVector3D(0.0,-gr,-1.0));
     ico.push_back( QVector3D(1.0,0.0,-gr));
     ico.push_back( QVector3D(gr,-1.0,0.0));
-    
+
     ico.push_back( QVector3D(0.0,-gr,-1.0));
     ico.push_back( QVector3D(gr,-1.0,0.0));
     ico.push_back( QVector3D(0.0,-gr,1.0));
-    
+
     ico.push_back( QVector3D(0.0,-gr,1.0));
     ico.push_back( QVector3D(gr,-1.0,0.0));
     ico.push_back( QVector3D(1.0,0.0,gr));
 
-    for(size_t i=0;i<ico.size();i++) 
+    for(size_t i=0;i<ico.size();i++)
         ico[i].normalize();
 
     for(int i=0;i<2;i++) {
@@ -388,8 +388,8 @@ void MyGLWidget::initSolidSphereVBO() {
     glGenBuffers(1,&id);
 
     for(size_t i=0;i<ico.size();i++) {
-	vertexWithNormal.push_back(ico[i]);
-	vertexWithNormal.push_back(ico[i]);
+    vertexWithNormal.push_back(ico[i]);
+    vertexWithNormal.push_back(ico[i]);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER,id);
@@ -486,9 +486,9 @@ void MyGLWidget::initSmoothTrianglesVBO(const std::vector<QVector3D>& vertices) 
 
     struct VertexComparator {
         const std::vector<QVector3D>& vertices;
-    
+
         VertexComparator(const std::vector<QVector3D>& v) : vertices(v) {}
-    
+
         bool operator()(int i,int j) {
             if (vertices[i].x() < vertices[j].x()) return true;
             if (vertices[i].x() > vertices[j].x()) return false;
@@ -514,7 +514,7 @@ void MyGLWidget::initSmoothTrianglesVBO(const std::vector<QVector3D>& vertices) 
 
         s.normalize();
 
-        for(int i=l;i<r;i++) 
+        for(int i=l;i<r;i++)
             normals[vid[i]] = s;
 
         l = r;
@@ -554,7 +554,7 @@ void MyGLWidget::initShaders() {
 }
 
 void MyGLWidget::initMaterials() {
-    float mat[19][11] = { 
+    float mat[19][11] = {
         { 0.329412,0.223529,0.027451,0.780392,0.568627,0.113725,0.992157,0.941176,0.807843,27.8974,1.0},
         { 0.2125,0.1275,0.054,0.714,0.4284,0.18144,0.393548,0.271906,0.166721,25.6,1.0 },
         { 0.25,0.148,0.06475,0.4,0.2368,0.1036,0.774597,0.458561,0.200621,76.8,1.0 },
@@ -644,7 +644,7 @@ void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,
 
 void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D color) {
     QMatrix4x4 M(modelView);
-    M.translate(c); 
+    M.translate(c);
     M.scale(r);
 
     const int t = materialType;
@@ -652,7 +652,7 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     p_Phong.setUniformValue("uMVMat", M);
     p_Phong.setUniformValue("uNMat", M.normalMatrix());
     /*
-    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));  
+    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
     p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
     p_Phong.setUniformValue("uSpecular",QVector3D(material[t][6],material[t][7],material[t][8]));
     p_Phong.setUniformValue("uShininess",material[t][9]);
@@ -670,7 +670,7 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), 0);
     int normalLocation = p_Phong.attributeLocation("a_normal");
     p_Phong.enableAttributeArray(normalLocation);
-	glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
+    glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
 
     glDrawArrays(GL_TRIANGLES,0,vboSolidSphereSize);
 }
@@ -688,15 +688,15 @@ void MyGLWidget::drawTriangleSets() {
 
     for(int i=0;i<(int) triangleSet.size();i++) {
         glBindBuffer(GL_ARRAY_BUFFER,vboTriangleSetId[i]);
-    
+
         int vertexLocation = p_Phong.attributeLocation("a_position");
         p_Phong.enableAttributeArray(vertexLocation);
         glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), 0);
-    
+
         int normalLocation = p_Phong.attributeLocation("a_normal");
         p_Phong.enableAttributeArray(normalLocation);
         glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const GLvoid*) (3*sizeof(float)));
-    
+
         glDrawArrays(GL_TRIANGLES,0,triangleSet[i].size());
     }
 }
@@ -716,9 +716,12 @@ void MyGLWidget::drawMolecule(molecule mol){
 
             for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
                 int iBond = mol.parts[i].elements[j].bonds[k].first;
+               // std::cout<<iBond<<"\n";
                 QVector3D pos2;
+                pos2=mol.positions[(iBond-1)];
+                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
 
-                for(int saruman=0;saruman<mol.parts.size();saruman++){
+               /* for(int saruman=0;saruman<mol.parts.size();saruman++){
                     for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
                             if(mol.parts[saruman].elements[countdoku].index==iBond){
                                 pos2 = mol.parts[saruman].elements[countdoku].pos;
@@ -726,7 +729,9 @@ void MyGLWidget::drawMolecule(molecule mol){
                                 drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
                             }
                         }
-                }
+                }*/
+
+
 
 
 
@@ -734,6 +739,7 @@ void MyGLWidget::drawMolecule(molecule mol){
 
         }
     }
+
 
 }
 
@@ -756,7 +762,7 @@ double MyGLWidget::intersectTriangle(const QVector3D& p0,const QVector3D& p1,con
     if (l[1] > 1.0) return inf;
     if (l[2] > 1.0) return inf;
     if (l[1]+l[2] > 1.0) return inf;
- 
+
     return l[0];
 }
 
@@ -848,9 +854,9 @@ void MyGLWidget::paintGL() {
     float camX = 0;
     float camY = 0;
     float camZ = 50;
-    float left   = mynear*(-displayWidth/2-camX)/camZ; 
+    float left   = mynear*(-displayWidth/2-camX)/camZ;
     float right  = mynear*( displayWidth/2-camX)/camZ;
-    float bottom = mynear*(-displayHeight/2-camY)/camZ; 
+    float bottom = mynear*(-displayHeight/2-camY)/camZ;
     float top    = mynear*( displayHeight/2-camY)/camZ;
 
     projection.setToIdentity();
@@ -861,9 +867,9 @@ void MyGLWidget::paintGL() {
     projection.translate(QVector3D(-camX,-camY,-camZ));
 
     camX = -3;
-    left   = mynear*(-displayWidth/2-camX)/camZ; 
+    left   = mynear*(-displayWidth/2-camX)/camZ;
     right  = mynear*( displayWidth/2-camX)/camZ;
-    bottom = mynear*(-displayHeight/2-camY)/camZ; 
+    bottom = mynear*(-displayHeight/2-camY)/camZ;
     top    = mynear*( displayHeight/2-camY)/camZ;
 
     QMatrix4x4 PLeft;
@@ -871,9 +877,9 @@ void MyGLWidget::paintGL() {
     PLeft.translate(QVector3D(-camX,-camY,-camZ));
 
     camX = 3;
-    left   = mynear*(-displayWidth/2-camX)/camZ; 
+    left   = mynear*(-displayWidth/2-camX)/camZ;
     right  = mynear*( displayWidth/2-camX)/camZ;
-    bottom = mynear*(-displayHeight/2-camY)/camZ; 
+    bottom = mynear*(-displayHeight/2-camY)/camZ;
     top    = mynear*( displayHeight/2-camY)/camZ;
 
     QMatrix4x4 PRight;
@@ -914,11 +920,9 @@ void MyGLWidget::paintGL() {
         for(int i=0;i<struc.mols[h].parts.size();i++){
             for(int j=0;j<struc.mols[h].parts[i].elements.size();j++){
                 QVector3D pos1 = struc.mols[h].parts[i].elements[j].pos;
-
                 for(int k=0;k<struc.mols[h].parts[i].elements[j].bonds.size();k++){
                     int iBond = struc.mols[h].parts[i].elements[j].bonds[k].first;
                     QVector3D pos2;
-
                     for(int saruman=0;saruman<struc.mols[h].parts.size();saruman++){
                         for(int countdoku=0;countdoku<struc.mols[h].parts[saruman].elements.size();countdoku++){
                                 if(struc.mols[h].parts[saruman].elements[countdoku].index==iBond){
@@ -928,16 +932,11 @@ void MyGLWidget::paintGL() {
                                 }
                             }
                     }
-
-
-
                 }
-
             }
         }
       }
     /*
-
     for(int i=0;i<atoms.size();i++){
         for(int j=i;j<atoms[i].bonds.size();j++){
             int iBond = atoms[i].bonds[j].first;
@@ -995,7 +994,7 @@ void MyGLWidget::pickLine(int x, int y, QVector3D& p0, QVector3D& p1) {
     QMatrix4x4 PM = projection*modelView;
     QVector4D a = PM.inverted()*QVector4D(p[0],p[1],-1.0,1.0);
     QVector4D b = PM.inverted()*QVector4D(p[0],p[1],1.0,1.0);
-    
+
     p0 = a.toVector3DAffine();
     p1 = b.toVector3DAffine();
 }
@@ -1047,7 +1046,7 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent* event) {
         pickLine(event->x(),event->y(),u1,v1);
 
         vu = v1 - u1;
-        if (triangle < 0) 
+        if (triangle < 0)
             cu = center - u1;
         else
             cu = p0 - u1;
