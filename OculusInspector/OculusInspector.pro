@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = OculusInspector
-QT += core gui widgets
+QT += core gui widgets gamepad
 #CONFIG += console #debug
 
 

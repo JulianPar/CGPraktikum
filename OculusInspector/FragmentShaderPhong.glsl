@@ -26,11 +26,12 @@ void main() {
     float lambertian = max(dot(lightDir,normal), 0.0);
     float specular = 0.0;
 
-    if (lambertian > 0.0) {
+
        float specAngle = max(dot(reflectDir, viewDir), 0.0);
        specular = pow(specAngle,uShininess);
-    }
 
-    gl_FragColor = vec4(uAmbient * 1.5 + lambertian*uDiffuse * 0.1 + specular*uSpecular * 0.5 , 1.0);
+
+   // gl_FragColor = vec4(normal,1);
+    gl_FragColor = vec4(uAmbient * 1.0 + lambertian*uDiffuse * 0.5 + specular*uSpecular * 0.0 , 1.0);
 }
 

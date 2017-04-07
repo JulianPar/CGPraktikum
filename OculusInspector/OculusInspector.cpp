@@ -14,7 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <limits>
-
+#include <QObject>
 #include <OVR_CAPI_GL.h>
 
 #include <assimp/cimport.h>
@@ -229,177 +229,365 @@ void MyGLWidget::loadModel(QString filename) {
 
 void CGMainWindow::loadHin(){
 
+
+
     QString fn = QFileDialog::getOpenFileName(this, "Load Ice Cube Data ...", QString(), "HIN files (*.hin)" );
+
     if (fn.isEmpty()) return;
+
     std::cout<<"Loading Ice Cube Data"<<std::endl;
 
+
+
     std::ifstream instream(fn.toLatin1(),std::ios::binary);
+
     //put all the lines of the file into 'lines'
+
     std::vector<std::string> lines;
+
     if(instream.is_open()){
+
         while(!instream.eof()){
+
             std::string st;
+
             getline(instream,st);
+
             lines.push_back(st);
+
         }
+
     }
-    std::cout<<"molecule1 \n";
+
+    //std::cout<<"molecule1 \n";
+
     //find the start and end of a molecule
+
     std::vector<int> begin;
+
     std::vector<int> end;
+
     for(int i = 0; i< lines.size(); i++){
-        std::cout<<"molecule \n";
+
+        //std::cout<<"molecule \n";
+
         std::string temp = lines[i];
+
         std::cout << temp << "\n";
+
         if(temp.substr(0,3) == "mol"){
+
             begin.push_back(i);
+
             //molecule m{temp};
+
             //ogl->struc.mols.push_back(m);
+
         }
+
         if(temp.substr(0,6) == "endmol"){
+
             end.push_back(i);
+
         }
+
     }
+
+    std::cout<<"begin: "<<begin.size()<<"\n";
+
      //find out where all the residues of one molecule start and end
+
     for(int monster=0;monster<begin.size();monster++){
+
         std::vector<int> beginr;//a vector storing all starts of the residues
+
         std::vector<int> endr;
+
+        std::cout<<"monster:"<<monster<<"\n";
+
         for(int j = begin[monster]; j < end[monster]; j++){
+
+
 
             std::string temp = lines[j];
+
             if(temp.substr(0,3)=="res"){
+
                 beginr.push_back(j);
 
+
+
             }
+
             if(temp.substr(0,6)=="endres"){
+
                 endr.push_back(j);
+
             }
+
         }
-        for(int j = begin[monster]; j < end[monster]; j++){
-            molecule m;
-            for(int dracula=0;dracula<beginr.size();dracula++){
+
+        //std::cout<<"beginr.size: "<<beginr.size()<<"\n";
+
+        //std::cout<<"end[monster]: "<<end[monster]<<"\n";
+
+        molecule m;
+
+        std::vector<QVector3D> posi;
+
+        for(int dracula=0;dracula<beginr.size();dracula++){
+
                 std::cout<<"reached residue \n";
+
                 residue r;
+
                 r.rname=lines[beginr[dracula]];
+
                 std::cout<<r.rname<<"\n";
+
+                //std::cout<<"beginr[dracula]: "<<beginr[dracula]<<"\n";
+
+                //std::cout<<"endr[dracula]: "<<endr[dracula]<<"\n";
+
                 for(int fumanchu =beginr[dracula];fumanchu<endr[dracula];fumanchu++){
+
                     std::string temp=lines[fumanchu];
+
                     if(temp.substr(0,4) == "atom"){
 
-                       float i,x,y,z;
+                       float x,y,z;
+
                        std::string name;
+
                        std::istringstream f(temp);
+
                        std::string str;
+
                        int len,ind;
+
                        std::string dummy;
+
                        int counter =0;
+
                        std::vector<std::pair<int,std::string>> seanconnery;
 
+
+
                        //splitting one line
+
                        while (getline(f, str, ' ')) {
+
                            if(counter==1){
+
                                std::stringstream sstr;
+
                                sstr << str;
+
                                sstr>>ind;
+
                            }
 
+
+
                            if(counter==3){
+
                                std::stringstream sstr;
+
                                sstr << str;
+
                                name=str;
+
                            }
+
                            if(counter==7){
+
                                std::stringstream sstr;
+
                                sstr << str;
+
                                sstr >> x;
+
                            }
+
                            if(counter==8){
+
                                std::stringstream sstr;
+
                                sstr << str;
+
                                sstr >> y;
+
                            }
+
                            if(counter==9){
+
                                std::stringstream sstr;
+
                                sstr << str;
+
                                sstr >> z;
+
                            }
+
                            /*if(counter==10){
+
                                std::stringstream sstr;
+
                                sstr<< str;
+
                                sstr>>len;
+
                            }*/
+
                            if(counter>10&&counter%2==1){
+
                                std::stringstream sstr;
+
                                sstr<<str;
+
                                sstr>>len;
+
                            }
+
                            if(counter>10&&counter%2==0){
+
                                std::stringstream sstr;
+
                                sstr<<str;
+
                                sstr>>dummy;
+
                                seanconnery.push_back({len,dummy});
+
                                //std::cout<<seanconnery[0].first<<"\n";
+
                            }
+
                            counter++;
+
+
 
                        }
 
-                       atom a{ind,name,QVector3D{x,y,z},0.0,seanconnery,QVector3D{0,0,0}};
+                       QVector3D hans {x,y,z};
+
+                       posi.push_back(hans);
+
+                       //std::cout<<hans.x()<<", "<<hans.y()<<", "<<hans.z()<<"\n";
+
+                       atom a{ind,name,hans,0.0,seanconnery,QVector3D{0,0,0}};
+
                        std::cout<<"yesss";
+
                        r.elements.push_back(a);
+
+
+
                     }
 
-
-
                 }
-                 m.parts.push_back(r);
 
-         }
-        ogl->struc.mols.push_back(m);
+              m.parts.push_back(r);
+
+
+
+             }
+
+        m.positions=posi;
+
+ogl->struc.mols.push_back(m);
+ogl->phiMol.push_back(0.0f);
+ogl->thetaMol.push_back(0.0f);
+
+
     }
-    }
+
+
 
     QString fn2 = QFileDialog::getOpenFileName(this, "Load Ice Cube Data ...", QString(), "txt files (*.txt)" );
+
     if (fn2.isEmpty()) return;
+
     std::cout<<"Loading Radius"<<std::endl;
 
+
+
     std::ifstream ist(fn2.toLatin1(),std::ios::binary);
+
     std::vector<std::tuple<std::string,float,QVector3D>> vec;
+
     int count=0;
+
     if(ist.is_open()){
+
        while(!ist.eof()){
+
            float value;
+
            std::string key;
+
            float r,g,b;
+
            ist>>key>>value;
+
            ist >>r>>g>>b;
+
            QVector3D v {r/255,g/255,b/255};
+
            std::cout<<key<<", "<<value<<"\n";
+
            std::tuple<std::string,float,QVector3D> ma{key,value,v};
+
            vec.push_back(ma);
+
            std::cout<<count++<<"\n";
+
        }
+
     }
+
     else{
+
         std::cout<<"File not found \n";
+
     }
+
     std::cout<<"change atom size"<<"\n";
+
     for(int h=0;h<ogl->struc.mols.size();h++){
+
         for(int i=0;i<ogl->struc.mols[h].parts.size();i++){
+
             for(int j=0;j<ogl->struc.mols[h].parts[i].elements.size();j++){
+
                 for(int k=0;k<vec.size();k++){
-                    std::cout<<"h:"<<h<<" i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
+
+                    //std::cout<<"h:"<<h<<" i: "<<i<<",j: "<<j<<" k:"<<k<<"\n";
+
                     std::string nam=ogl->struc.mols[h].parts[i].elements[j].name;
+
                     if(nam==std::get<0>(vec[k])){
+
                         ogl->struc.mols[h].parts[i].elements[j].radius=std::get<1>(vec[k]);
+
                         ogl->struc.mols[h].parts[i].elements[j].color=std::get<2>(vec[k]);
+
                     }
+
                 }
+
             }
+
         }
+
     }
+
+    std::cout<<"finished loading"<<"\n";
+
     ogl->flag = true;
+
     ogl->update();
+
 }
 
 void MyGLWidget::refineSolidSphere(const std::vector<QVector3D>& sphere,std::vector<QVector3D>& refined) {
@@ -435,6 +623,7 @@ void MyGLWidget::refineSolidSphere(const std::vector<QVector3D>& sphere,std::vec
 }
 
 void MyGLWidget::initSolidSphereVBO() {
+    std::cout << "InitSolidSphereVBO" << std::endl;
     std::vector<QVector3D> ico;
     float gr = 0.5*(1.0+sqrt(5.0));
 
@@ -579,6 +768,78 @@ void MyGLWidget::initCylinderVBO(){
     vboCylinderSize = static_cast<int>(ico.size());
 }
 
+void MyGLWidget::initCubeVBOandIBO() {
+    std::vector<QVector3D> vboCube;
+
+    vboCube.push_back(QVector3D(-1,-1,-1));
+    vboCube.push_back(QVector3D( 1,-1,-1));
+    vboCube.push_back(QVector3D(-1, 1,-1));
+    vboCube.push_back(QVector3D( 1, 1,-1));
+    vboCube.push_back(QVector3D(-1,-1, 1));
+    vboCube.push_back(QVector3D( 1,-1, 1));
+    vboCube.push_back(QVector3D(-1, 1, 1));
+    vboCube.push_back(QVector3D( 1, 1, 1));
+
+    // unsigned int indices[] = { 0,1,2,1,3,2,4,6,5,6,7,5,0,4,5,0,5,1,2,7,6,2,3,7,7,3,1,7,1,5,0,2,6,0,6,4 };
+    // std::vector<unsigned int> iboCube(indices+0,indices+36);
+
+    std::vector<unsigned int> iboCube { 0,1,2,1,3,2,4,6,5,6,7,5,0,4,5,0,5,1,2,7,6,2,3,7,7,3,1,7,1,5,0,2,6,0,6,4 };
+
+    glGenBuffers(1,&vboCubeId);
+
+    glBindBuffer(GL_ARRAY_BUFFER,vboCubeId);
+    glBufferData(GL_ARRAY_BUFFER,vboCube.size()*sizeof(QVector3D),vboCube.data(),GL_STATIC_DRAW);
+
+    vboCubeSize = (unsigned int) vboCube.size();
+
+    glGenBuffers(1,&iboCubeId);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboCubeId);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,iboCube.size()*sizeof(unsigned int),iboCube.data(),GL_STATIC_DRAW);
+
+    iboCubeSize = (unsigned int) iboCube.size();
+}
+
+void MyGLWidget::initCubeMap(QString name) {
+    const QImage posx = QImage(QString("_positive_x.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
+    const QImage posy = QImage(QString("_positive_y.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
+    const QImage posz = QImage(QString("_positive_z.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
+    const QImage negx = QImage(QString("_negative_x.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
+    const QImage negy = QImage(QString("_negative_y.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
+    const QImage negz = QImage(QString("_negative_z.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
+
+    cubemap = new QOpenGLTexture(QOpenGLTexture::TargetCubeMap);
+    cubemap->create();
+    cubemap->setSize(posx.width(), posx.height(), posx.depth());
+    cubemap->setFormat(QOpenGLTexture::RGBA8_UNorm);
+    cubemap->allocateStorage();
+    cubemap->setData(0, 0, QOpenGLTexture::CubeMapPositiveX,
+                            QOpenGLTexture::RGBA, QOpenGLTexture::UInt8,
+                            (const void*)posx.constBits(), 0);
+    cubemap->setData(0, 0, QOpenGLTexture::CubeMapPositiveY,
+                            QOpenGLTexture::RGBA, QOpenGLTexture::UInt8,
+                            (const void*)posy.constBits(), 0);
+    cubemap->setData(0, 0, QOpenGLTexture::CubeMapPositiveZ,
+                            QOpenGLTexture::RGBA, QOpenGLTexture::UInt8,
+                            (const void*)posz.constBits(), 0);
+    cubemap->setData(0, 0, QOpenGLTexture::CubeMapNegativeX,
+                            QOpenGLTexture::RGBA, QOpenGLTexture::UInt8,
+                            (const void*)negx.constBits(), 0);
+    cubemap->setData(0, 0, QOpenGLTexture::CubeMapNegativeY,
+                            QOpenGLTexture::RGBA, QOpenGLTexture::UInt8,
+                            (const void*)negy.constBits(), 0);
+    cubemap->setData(0, 0, QOpenGLTexture::CubeMapNegativeZ,
+                            QOpenGLTexture::RGBA, QOpenGLTexture::UInt8,
+                            (const void*)negz.constBits(), 0);
+    cubemap->generateMipMaps();
+    cubemap->setWrapMode(QOpenGLTexture::ClampToEdge);
+    cubemap->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+    cubemap->setMagnificationFilter(QOpenGLTexture::LinearMipMapLinear);
+
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+}
+
 
 void MyGLWidget::initShaders() {
     setlocale(LC_NUMERIC,"C");
@@ -595,6 +856,18 @@ void MyGLWidget::initShaders() {
     if (!p_Diffuse.bind())
         close();
 */
+    if (!p_Cube.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/VertexShaderEnvMap.glsl"))
+        close();
+
+    if (!p_Cube.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/FragmentShaderEnvMap.glsl"))
+        close();
+
+    if (!p_Cube.link())
+        close();
+
+    if (!p_Cube.bind())
+        close();
+
     if (!p_Phong.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/VertexShaderPhong.glsl"))
         close();
 
@@ -846,6 +1119,8 @@ void MyGLWidget::initializeGL() {
     initCylinderVBO();
     initSolidSphereVBO();
     initializeOVR();
+    initCubeVBOandIBO();
+    initCubeMap(QString(":/Maps/Park"));
 
     glClearColor(0.6,0.6,0.6,1);
 
@@ -913,6 +1188,7 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     p_Phong.bind();
     p_Phong.setUniformValue("uMVMat", M);
     p_Phong.setUniformValue("uNMat", M.normalMatrix());
+    p_Phong.setUniformValue("uPMat", this->projection);
     /*
     p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
     p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
@@ -921,10 +1197,11 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     */
     //p_Phong.setUniformValue("uDiffuse",color);
 
-    p_Phong.setUniformValue("uAmbient",color);
-    p_Phong.setUniformValue("uDiffuse",QVector3D(0.3,0.4,0.4));
-    p_Phong.setUniformValue("uSpecular",QVector3D(0.3,0.4,0.4));
-    p_Phong.setUniformValue("uShininess",0.3f);
+    p_Phong.setUniformValue("uAmbient",color*0.7);
+
+    p_Phong.setUniformValue("uDiffuse",color*0.8);
+    p_Phong.setUniformValue("uSpecular",QVector3D(1,1,1));
+    p_Phong.setUniformValue("uShininess",1.2f);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboSolidSphereId);
     int vertexLocation = p_Phong.attributeLocation("a_position");
@@ -944,34 +1221,54 @@ void MyGLWidget::drawMolecule(molecule mol){
             drawSolidSphere(mol.parts.at(i).elements[j].pos,mol.parts.at(i).elements[j].radius/200,mol.parts.at(i).elements[j].color);
         }
     }
-
-
     for(int i=0;i<mol.parts.size();i++){
         for(int j=0;j<mol.parts[i].elements.size();j++){
             QVector3D pos1 = mol.parts[i].elements[j].pos;
-
             for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
                 int iBond = mol.parts[i].elements[j].bonds[k].first;
+               // std::cout<<iBond<<"\n";
                 QVector3D pos2;
-
-                for(int saruman=0;saruman<mol.parts.size();saruman++){
-                    for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
-                            if(mol.parts[saruman].elements[countdoku].index==iBond){
-                                pos2 = mol.parts[saruman].elements[countdoku].pos;
-                                //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
-                                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
-                            }
-                        }
-                }
-
-
-
+                pos2=mol.positions[(iBond-1)];
+                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
             }
-
         }
     }
+}
+
+void MyGLWidget::drawCubeMap(){
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+/*
+    float aspect = (float) width()/height();
+    projection.setToIdentity();
+    projection.ortho(-aspect,aspect,-1.0,1.0,-10.0,10.0);
+    modelView = RNow;
+    modelView.scale(zoom,zoom,zoom);
+    //modelView.scale(10,10,10);
+    modelView.translate(-center);
+*/
+    cubemap->bind(0);
+
+    p_Cube.bind();
+    p_Cube.setUniformValue("uPMat", projection);
+    p_Cube.setUniformValue("uMVMat", modelView);
+    p_Cube.setUniformValue("cubemap", 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER,vboCubeId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboCubeId);
+
+    int vertexLocation = p_Cube.attributeLocation("a_position");
+    p_Cube.enableAttributeArray(vertexLocation);
+    glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), 0);
+
+    glDrawElements(GL_TRIANGLES,iboCubeSize,GL_UNSIGNED_INT,0);
+
 
 }
+
+
+
 
 double MyGLWidget::intersectTriangle(const QVector3D& p0,const QVector3D& p1,const QVector3D& a,const QVector3D& b,const QVector3D& c) {
     QMatrix4x4 M(p0[0]-p1[0],b[0]-a[0],c[0]-a[0],0.0,
@@ -1058,16 +1355,32 @@ QMatrix4x4 MyGLWidget::trackball(const QVector3D& u, const QVector3D& v) {
     R.rotate(180.0*phi/M_PI,uxv);
     return R;
 }
+void MyGLWidget::pressA(){
+    if(selectIndex<struc.mols.size())
+        selectIndex++;
+    std::cout<<selectIndex<<"\n";
+    update();
+}
+void MyGLWidget::pressB(){
+    if(selectIndex>=struc.mols.size()-1)
+         selectIndex--;
+     std::cout<<selectIndex<<"\n";
+    update();
+}
 
 void MyGLWidget::paintGL() {
     //if (vboTrianglesId.size() == 0) return
-    drawSolidSphere(QVector3D(0,0,0),1,QVector3D(0.2,0.2,0.2));
+
 
     if (viewMode == 1) {
         float aspect = (float) width()/height();
         projection.setToIdentity();
         projection.ortho(-aspect,aspect,-1.0,1.0,-10.0,10.0);
-        modelView = RNow;
+        //projection.perspective(45,aspect,1,200);
+        //modelView = RNow;
+        modelView.setToIdentity();
+        modelView.rotate(theta,1.0,0.0,0.0);
+        modelView.rotate(phi,0.0,1.0,0.0);
         modelView.scale(zoom,zoom,zoom);
         modelView.translate(-center);
 
@@ -1077,11 +1390,29 @@ void MyGLWidget::paintGL() {
         for(unsigned int i=0;i<scenes.size();i++)
             recursive_render(i, scenes[i]->mRootNode,modelView);
 
-        drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2));
+        modelView.scale(100,100,100);
+        glEnable(GL_CULL_FACE);
+        drawCubeMap();
+        glDisable(GL_CULL_FACE);
+
+        modelView.scale(0.01,0.01,0.01);
+
+
+        if (struc.mols.size()==0){
+            drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2));
+            drawSolidSphere(QVector3D(0,0,0),0.3,QVector3D(0.2,0.2,0.2));
+            drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,QVector3D(0.2,0.2,0.2));
+         }
+        if(struc.mols.size()!=0)
+            for(int i=0;i<struc.mols.size();i++){
+                drawMolecule(struc.mols[i]);
+
+            }
+
 
 
     }
-
+    ovrVector2f ve;
     if (viewMode == 2) {
          ovrSessionStatus sessionStatus;
          ovr_GetSessionStatus(session, &sessionStatus);
@@ -1089,8 +1420,46 @@ void MyGLWidget::paintGL() {
          // Hand-Tracking
          uint ConnectedControllerTypes = ovr_GetConnectedControllerTypes(session);
          ovrQuatf qNow = {0,0,0,1};
+         ovrInputState    inputState;
          // If controllers are connected, display their axis status.
-         if (ConnectedControllerTypes & (ovrControllerType_LTouch | ovrControllerType_RTouch)) {
+         //if (ConnectedControllerTypes & (ovrControllerType_LTouch | ovrControllerType_RTouch)) {
+
+           if (OVR_SUCCESS(ovr_GetInputState(session, ovrControllerType_XBox, &inputState))) {
+             //std::cout<<"XBox angeschlossen \n";
+             //std::cout<<"XBox angeschlossen"  << inputState.Buttons << "\n";
+
+
+
+             if (buttonAPressed&!(inputState.Buttons & ovrButton_A))
+                 {
+               pressA();
+             }
+             buttonAPressed = inputState.Buttons & ovrButton_A;
+
+             if(buttonBPressed&!(inputState.Buttons & ovrButton_B)){
+                pressB();
+             }
+             buttonBPressed = inputState.Buttons & ovrButton_B;
+             if(inputState.Buttons&ovrButton_LThumb){
+
+             }
+             if(ovrButton_RThumb){
+
+                 ve=inputState.Thumbstick[1];
+                 //std::cout<<"x : "<<ve.x<<std::endl;
+                 //std::cout<<"y : "<<ve.y<<std::endl;
+                 if(struc.mols.size()!=0){
+                     phiMol[selectIndex]+=ve.y;
+                     thetaMol[selectIndex]+=ve.x;
+                }
+
+             }
+             if(inputState.Buttons&ovrButton_Left){
+
+             }
+
+
+
              double frameTiming = ovr_GetPredictedDisplayTime(session, frameIndex);
              ovrTrackingState trackState = ovr_GetTrackingState(session, frameTiming, ovrTrue);
              ovrPosef         handPoses[2];
@@ -1157,7 +1526,7 @@ void MyGLWidget::paintGL() {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_FRAMEBUFFER_SRGB);
 
-            ovrMatrix4f P = ovrMatrix4f_Projection(hmdDesc.DefaultEyeFov[eye], 0.2f, 10.0f, ovrProjection_None);
+            ovrMatrix4f P = ovrMatrix4f_Projection(hmdDesc.DefaultEyeFov[eye], 0.2f, 150.0f, ovrProjection_None);
             projection = QMatrix4x4(&P.M[0][0]);
 
             modelView.setToIdentity();
@@ -1170,6 +1539,33 @@ void MyGLWidget::paintGL() {
             modelView.scale(zoom,zoom,zoom);
             modelView.rotate(-90,1,0,0);
             modelView.translate(-center);
+
+
+
+            modelView.scale(100,100,100);
+            glEnable(GL_CULL_FACE);
+            modelView.rotate(90,1,0,0);
+            drawCubeMap();
+            glDisable(GL_CULL_FACE);
+            modelView.rotate(-90,1,0,0);
+            modelView.scale(0.005,0.005,0.005);
+
+            if (struc.mols.size()==0){
+                drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2));
+                drawSolidSphere(QVector3D(0,0,0),0.3,QVector3D(0.2,0.2,0.2));
+                drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,QVector3D(0.2,0.2,0.2));
+             }
+            if(struc.mols.size()!=0)
+                for(int i=0;i<struc.mols.size();i++){
+                    modelView.rotate(thetaMol[i],0,0,1);
+                    modelView.rotate(phiMol[i],0,1,0);
+                    drawMolecule(struc.mols[i]);
+                    modelView.rotate(-phiMol[i],0,1,0);
+                    modelView.rotate(-thetaMol[i],0,0,1);
+
+                }
+
+
 
             for(unsigned int i=0;i<scenes.size();i++)
                 recursive_render(i, scenes[i]->mRootNode,modelView);
@@ -1241,6 +1637,7 @@ void MyGLWidget::paintGL() {
         }
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        //std::cout<<"ve"<<ve.x<<std::endl;
     }
 }
 
@@ -1259,7 +1656,7 @@ void MyGLWidget::wheelEvent(QWheelEvent* event) {
     }
     QVector3D p = u + vu*l;
 
-    double factor = (delta < 0)? 1.1 : 1/1.1;
+    double factor = (delta > 0)? 1.1 : 1/1.1;
     zoom *= factor;
     center = p + (center-p)/factor;
 
@@ -1292,22 +1689,33 @@ void MyGLWidget::mousePressEvent(QMouseEvent *event) {
 void MyGLWidget::mouseReleaseEvent(QMouseEvent*) {}
 
 void MyGLWidget::mouseMoveEvent(QMouseEvent* event) {
+
+    if (button == Qt::LeftButton) {
+        phi -= (event->x()-mouseX)/5.0;
+        theta -= (event->y()-mouseY)/5.0;
+    }
+    /*
     if (button == Qt::LeftButton) {
         QVector3D p1 = mouseToTrackball(mouseX,mouseY);
         QVector3D p2 = mouseToTrackball(event->x(),event->y());
 
-//      phi += (event->x()-mouseX)/5.0;
-//      theta += (event->y()-mouseY)/5.0;
-//      if (theta < -90.0) theta = -90.0;
-//      if (theta >  90.0) theta =  90.0;
+      //phi += (event->x()-mouseX)/5.0;
+      //theta += (event->y()-mouseY)/5.0;
+      //if (theta < -90.0) theta = -90.0;
+      //if (theta >  90.0) theta =  90.0;
+
+
+
+
 
 //      QQuaternion q = trackball(p1,p2);
 //      qNow = q * qNow;
 //      qNow.normalize();
 
-        RNow = trackball(p1,p2) * RNow;
-    }
+        //RNow = trackball(p1,p2) * RNow;
 
+    }
+*/
     if (button == Qt::RightButton) {
         QVector3D u0,u1,v0,v1;
         QVector3D vu,cu,p0,p1;

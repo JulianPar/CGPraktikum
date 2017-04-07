@@ -36,12 +36,12 @@ struct residue{
 struct molecule{
     std::string name;
     std::vector<residue> parts;
+    std::vector<QVector3D> positions;
 };
 
 struct structure{
     std::vector<molecule> mols;
 };
-
 
 class MyGLWidget;
 
@@ -71,13 +71,15 @@ public slots:
     void centerEye();
 
 public:
-
     MyGLWidget(CGMainWindow*,QWidget*);
     void initShaders();
     void initializeGL();
     void initializeOVR();
     void initFBO();
-
+    void initCubeMap(QString);
+    void initCubeVBOandIBO();
+    void pressA();
+    void pressB();
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&);
     void initSolidSphereVBO();
     void initCylinderVBO();
@@ -97,6 +99,10 @@ public:
     float zoom;
     QVector3D center,bbMin,bbMax, eyeCenter;
     QMatrix4x4 RNow;
+    float phi,theta;
+    std::vector<float> phiMol, thetaMol;
+    int selectIndex=0;
+    bool buttonAPressed,buttonBPressed;
 
     std::vector<atom> atoms;
     structure struc;
@@ -112,6 +118,7 @@ public:
     std::vector<GLuint> vboTriangleSetId;
     GLuint vboSolidSphereId, vboCylinderId;
     int vboSolidSphereSize, vboCylinderSize;
+    GLuint vboCubeId, iboCubeId, vboCubeSize, iboCubeSize;
 
 protected:
 
@@ -125,6 +132,7 @@ protected:
     void drawSolidSphere(const QVector3D&,float,const QVector3D);
     void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
     void drawMolecule(molecule mol);
+    void drawCubeMap();
 
     CGMainWindow *main;
     QTimer *timer;
@@ -146,6 +154,8 @@ private:
     QOpenGLShaderProgram p_Diffuse;
     QOpenGLShaderProgram p_Phong;
     QMatrix4x4 projection,modelView;
+    QOpenGLShaderProgram p_Cube;
+    QOpenGLTexture *cubemap;
 };
 
 #endif

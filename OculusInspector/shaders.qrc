@@ -4,5 +4,31 @@
         <file>FragmentShaderDiffuse.glsl</file>
         <file>VertexShaderPhong.glsl</file>
         <file>FragmentShaderPhong.glsl</file>
+        <file>FragmentShaderEnvMap.glsl</file>
+        <file>VertexShaderEnvMap.glsl</file>
+        <file>Maps/Church_negative_x.jpg</file>
+        <file>Maps/Church_negative_y.jpg</file>
+        <file>Maps/Church_negative_z.jpg</file>
+        <file>Maps/Church_positive_x.jpg</file>
+        <file>Maps/Church_positive_y.jpg</file>
+        <file>Maps/Church_positive_z.jpg</file>
+        <file>Maps/Lobby_negative_x.jpg</file>
+        <file>Maps/Lobby_negative_y.jpg</file>
+        <file>Maps/Lobby_negative_z.jpg</file>
+        <file>Maps/Lobby_positive_x.jpg</file>
+        <file>Maps/Lobby_positive_y.jpg</file>
+        <file>Maps/Lobby_positive_z.jpg</file>
+        <file>Maps/Museum_negative_x.jpg</file>
+        <file>Maps/Museum_negative_y.jpg</file>
+        <file>Maps/Museum_negative_z.jpg</file>
+        <file>Maps/Museum_positive_x.jpg</file>
+        <file>Maps/Museum_positive_y.jpg</file>
+        <file>Maps/Museum_positive_z.jpg</file>
+        <file>Maps/Park_negative_x.jpg</file>
+        <file>Maps/Park_negative_y.jpg</file>
+        <file>Maps/Park_negative_z.jpg</file>
+        <file>Maps/Park_positive_x.jpg</file>
+        <file>Maps/Park_positive_y.jpg</file>
+        <file>Maps/Park_positive_z.jpg</file>
     </qresource>
 </RCC>
