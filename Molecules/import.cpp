@@ -69,7 +69,7 @@ void CGMainWindow::loadHin(){
         //std::cout<<"beginr.size: "<<beginr.size()<<"\n";
         //std::cout<<"end[monster]: "<<end[monster]<<"\n";
         molecule m;
-
+        std::vector<QVector3D> posi;
         for(int dracula=0;dracula<beginr.size();dracula++){
                 std::cout<<"reached residue \n";
                 residue r;
@@ -137,7 +137,10 @@ void CGMainWindow::loadHin(){
                            counter++;
 
                        }
-                       atom a{ind,name,QVector3D{x,y,z},0.0,seanconnery,QVector3D{0,0,0}};
+                       QVector3D hans {x,y,z};
+                       posi.push_back(hans);
+                       //std::cout<<hans.x()<<", "<<hans.y()<<", "<<hans.z()<<"\n";
+                       atom a{ind,name,hans,0.0,seanconnery,QVector3D{0,0,0}};
                        std::cout<<"yesss";
                        r.elements.push_back(a);
 
@@ -146,6 +149,7 @@ void CGMainWindow::loadHin(){
               m.parts.push_back(r);
 
              }
+        m.positions=posi;
 ogl->struc.mols.push_back(m);
     }
 
