@@ -17,6 +17,7 @@
 #include <QObject>
 #include <OVR_CAPI_GL.h>
 
+
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -494,11 +495,45 @@ void CGMainWindow::loadHin(){
              }
 
         m.positions=posi;
+        float xMax=-std::numeric_limits<float>::infinity();
+        float xMin=std::numeric_limits<float>::infinity();
+        float yMax=-std::numeric_limits<float>::infinity();
+        float yMin=std::numeric_limits<float>::infinity();
+        float zMax=-std::numeric_limits<float>::infinity();
+        float zMin=std::numeric_limits<float>::infinity();
+        for(int j=0;j<m.parts.size();j++){
+            for(int k=0;k<m.parts[j].elements.size();k++){
+                QVector3D posi=m.parts[j].elements[k].pos;
+                if(posi.x()>xMax){
+                    xMax=posi.x();
+                }
+                if(posi.x()<xMin){
+                    xMin=posi.x();
+                }
+                if(posi.y()>yMax){
+                    yMax=posi.y();
+                }
+                if(posi.y()<yMin){
+                    yMin=posi.y();
+                }
+                if(posi.z()>zMax){
+                    zMax=posi.z();
+                }
+                if(posi.z()<zMin){
+                    zMin=posi.z();
+                }
+            }
 
+        }
+float centralx=xMin+((xMax-xMin)/2);
+float centraly=yMin+((yMax-yMin)/2);
+float centralz=zMin+((zMax-zMin)/2);
+ogl->central.push_back(QVector3D{centralx,centraly,centralz});
 ogl->struc.mols.push_back(m);
 ogl->phiMol.push_back(0.0f);
 ogl->thetaMol.push_back(0.0f);
-
+ogl->xPos.push_back(0.0f);
+ogl->yPos.push_back(0.0f);
 
     }
 
@@ -843,7 +878,7 @@ void MyGLWidget::initCubeMap(QString name) {
 
 void MyGLWidget::initShaders() {
     setlocale(LC_NUMERIC,"C");
-/*
+    /*
     if (!p_Diffuse.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/VertexShaderDiffuse.glsl"))
         close();
 
@@ -855,7 +890,20 @@ void MyGLWidget::initShaders() {
 
     if (!p_Diffuse.bind())
         close();
-*/
+    */
+    if (!p_Color.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/VertexShaderColor.glsl"))
+        close();
+
+    if (!p_Color.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/FragmentShaderColor.glsl"))
+        close();
+
+    if (!p_Color.link())
+        close();
+
+    if (!p_Color.bind())
+        close();
+
+
     if (!p_Cube.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/VertexShaderEnvMap.glsl"))
         close();
 
@@ -1120,11 +1168,12 @@ void MyGLWidget::initializeGL() {
     initSolidSphereVBO();
     initializeOVR();
     initCubeVBOandIBO();
-    initCubeMap(QString(":/Maps/Park"));
+    initCubeMap(QString(":/Maps/Church"));
 
     glClearColor(0.6,0.6,0.6,1);
 
     glEnable(GL_DEPTH_TEST);
+
 
     bbMin[0] = bbMin[1] = bbMin[2] =  std::numeric_limits<double>::infinity();
     bbMax[0] = bbMax[1] = bbMax[2] = -std::numeric_limits<double>::infinity();
@@ -1134,6 +1183,11 @@ void MyGLWidget::initializeGL() {
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(10);
+
+    icke.setToIdentity();
+    crosshairView.setToIdentity();
+    crosshairView.translate(0,0,-0.01);
+    crosshairView.scale(0.01f,0.01f,0.01f);
 }
 
 void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,const QVector3D color) {
@@ -1214,13 +1268,47 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     glDrawArrays(GL_TRIANGLES,0,vboSolidSphereSize);
 }
 
+
+void MyGLWidget::drawCrosshair() {
+    //QMatrix4x4 M(modelView);
+    //M.translate(c);
+    //M.scale(r);
+
+   // const int t = materialType;
+    p_Color.bind();
+    p_Color.setUniformValue("uMVMat", crosshairView);
+    p_Color.setUniformValue("uNMat", crosshairView.normalMatrix());
+    p_Color.setUniformValue("uPMat", this->projection);
+    /*
+    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[t][6],material[t][7],material[t][8]));
+    p_Phong.setUniformValue("uShininess",material[t][9]);
+    */
+    //p_Phong.setUniformValue("uDiffuse",color);;
+
+    p_Color.setUniformValue("uDiffuse",QVector3D(1,1,1));
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboSolidSphereId);
+    int vertexLocation = p_Phong.attributeLocation("a_position");
+    p_Color.enableAttributeArray(vertexLocation);
+    glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), 0);
+    int normalLocation = p_Phong.attributeLocation("a_normal");
+    p_Color.enableAttributeArray(normalLocation);
+    glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
+
+    glDrawArrays(GL_TRIANGLES,0,vboSolidSphereSize);
+}
+
+
 void MyGLWidget::drawMolecule(molecule mol){
 
     for(int i=0;i<mol.parts.size();i++){
         for(int j=0;j<mol.parts[i].elements.size();j++){
             drawSolidSphere(mol.parts.at(i).elements[j].pos,mol.parts.at(i).elements[j].radius/200,mol.parts.at(i).elements[j].color);
         }
-    }
+    }/*
     for(int i=0;i<mol.parts.size();i++){
         for(int j=0;j<mol.parts[i].elements.size();j++){
             QVector3D pos1 = mol.parts[i].elements[j].pos;
@@ -1232,7 +1320,7 @@ void MyGLWidget::drawMolecule(molecule mol){
                 drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
             }
         }
-    }
+    }*/
 }
 
 void MyGLWidget::drawCubeMap(){
@@ -1413,9 +1501,11 @@ void MyGLWidget::paintGL() {
 
     }
     ovrVector2f ve;
+    ovrVector2f vp;
     if (viewMode == 2) {
          ovrSessionStatus sessionStatus;
          ovr_GetSessionStatus(session, &sessionStatus);
+
 
          // Hand-Tracking
          uint ConnectedControllerTypes = ovr_GetConnectedControllerTypes(session);
@@ -1440,9 +1530,7 @@ void MyGLWidget::paintGL() {
                 pressB();
              }
              buttonBPressed = inputState.Buttons & ovrButton_B;
-             if(inputState.Buttons&ovrButton_LThumb){
 
-             }
              if(ovrButton_RThumb){
 
                  ve=inputState.Thumbstick[1];
@@ -1454,8 +1542,35 @@ void MyGLWidget::paintGL() {
                 }
 
              }
+             if(ovrButton_LThumb){
+                 vp=inputState.Thumbstick[0];
+                // std::cout<<inputState.Thumbstick[1].x;
+                 //std::cout<<inputState.Thumbstick[1].y;
+                 if(struc.mols.size()!=0){
+                     xPos[selectIndex]+=(vp.x/2);
+                     yPos[selectIndex]+=(vp.y/2);
+                 }
+             }
+             if((inputState.Buttons&ovrButton_Up)){
+                float s = 0.04;
+                QVector3D t = s*sightz;
+                icke.translate(t);
+                //std::cout<<"up"<<std::endl;
+             }
+             if(inputState.Buttons&ovrButton_Down){
+                 float s = -0.04;
+                 QVector3D t = s*sightz;
+                 icke.translate(t);
+             }
              if(inputState.Buttons&ovrButton_Left){
-
+                 float s = 0.1;
+                 QVector3D t = s*sighty;
+                 icke.translate(t);
+             }
+             if(inputState.Buttons&ovrButton_Right){
+                 float s = -0.1;
+                 QVector3D t = s*sighty;
+                 icke.translate(t);
              }
 
 
@@ -1533,15 +1648,45 @@ void MyGLWidget::paintGL() {
             ovrQuatf q = EyeRenderPose[eye].Orientation;
             modelView.rotate(QQuaternion(q.w,q.x,q.y,q.z).conjugate());
             ovrVector3f p = EyeRenderPose[eye].Position;
-            modelView.translate(-p.x,-p.y,-p.z);
+            //modelView.translate(-p.x,-p.y,-p.z);
             //modelView.rotate(QQuaternion(qNow.w, qNow.x, qNow.y, qNow.z));
+            //modelView.scale(0.25,0.25,0.25);
+           // modelView.scale(zoom,zoom,zoom);
+            //modelView.rotate(-90,1,0,0);
+            //modelView.translate(-center);
+
+
+            //Berechnung der Sichtrichtung            
+            QMatrix4x4 Mrot;
+            Mrot.setToIdentity();
+            Mrot.rotate(QQuaternion(q.w,q.x,q.y,q.z));
+
+            QVector4D s;
+            s = QVector4D(0,0,1,1);
+            s = Mrot*s;
+            s.normalize();
+            sightz = QVector3D(s.x(),s.y(),s.z());
+            sightz.normalize();
+
+            s = QVector4D(1,0,0,1);
+            s = Mrot*s;
+            s.normalize();
+            sighty = QVector3D(s.x(),s.y(),s.z());
+            sighty.normalize();
+
+
+            //Bewegung der Kamera
+            modelView = modelView*icke;
+
+            //Anfangs Orientierung
+            modelView.translate(-p.x,-p.y,-p.z);
             modelView.scale(0.25,0.25,0.25);
             modelView.scale(zoom,zoom,zoom);
             modelView.rotate(-90,1,0,0);
             modelView.translate(-center);
 
 
-
+            //Draw CubeMap
             modelView.scale(100,100,100);
             glEnable(GL_CULL_FACE);
             modelView.rotate(90,1,0,0);
@@ -1555,15 +1700,28 @@ void MyGLWidget::paintGL() {
                 drawSolidSphere(QVector3D(0,0,0),0.3,QVector3D(0.2,0.2,0.2));
                 drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,QVector3D(0.2,0.2,0.2));
              }
+
+            //Draw molecules with rotation and position
             if(struc.mols.size()!=0)
                 for(int i=0;i<struc.mols.size();i++){
-                    modelView.rotate(thetaMol[i],0,0,1);
-                    modelView.rotate(phiMol[i],0,1,0);
-                    drawMolecule(struc.mols[i]);
-                    modelView.rotate(-phiMol[i],0,1,0);
-                    modelView.rotate(-thetaMol[i],0,0,1);
+                    QMatrix4x4 mat;
+                    mat.setToIdentity();
+                    //QVector t = xPos[i]*sightz+yPos[i];
+                    mat.translate(xPos[i],0,0);
+                    mat.translate(0,yPos[i],0);
+                    mat.translate(central[i]);
+                    mat.rotate(thetaMol[i],0,0,1);
+                    mat.rotate(phiMol[i],0,1,0);
+                    mat.translate(-central[i]);
 
+                    modelView=modelView*mat;
+                    drawMolecule(struc.mols[i]);
+                    modelView=modelView*mat.inverted();
                 }
+
+            //Crosshair
+            drawCrosshair();
+
 
 
 
@@ -1637,7 +1795,7 @@ void MyGLWidget::paintGL() {
         }
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-        //std::cout<<"ve"<<ve.x<<std::endl;
+        //std::cout<<"ve"<<vp.x<<std::endl;
     }
 }
 

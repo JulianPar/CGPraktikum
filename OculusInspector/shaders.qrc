@@ -30,5 +30,7 @@
         <file>Maps/Park_positive_x.jpg</file>
         <file>Maps/Park_positive_y.jpg</file>
         <file>Maps/Park_positive_z.jpg</file>
+        <file>FragmentShaderColor.glsl</file>
+        <file>VertexShaderColor.glsl</file>
     </qresource>
 </RCC>

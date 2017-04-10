@@ -20,6 +20,6 @@ void main() {
     vec4 p = uPMat * uMVMat * vec4(a_position,1.0);
     gl_Position = p;
     vec3 n = normalize(uNMat * a_normal);
-    vIntensity = abs(n.z);
-
+   // vIntensity = abs(n.z);
+    vIntensity = 0.9;
 }

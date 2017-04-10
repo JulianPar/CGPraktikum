@@ -78,6 +78,7 @@ public:
     void initFBO();
     void initCubeMap(QString);
     void initCubeVBOandIBO();
+    void initCrosshair();
     void pressA();
     void pressB();
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&);
@@ -101,12 +102,15 @@ public:
     QMatrix4x4 RNow;
     float phi,theta;
     std::vector<float> phiMol, thetaMol;
+    std::vector<float> xPos,yPos;
+    std::vector<QVector3D>central;
     int selectIndex=0;
     bool buttonAPressed,buttonBPressed;
 
     std::vector<atom> atoms;
     structure struc;
     bool flag;
+    QVector3D sightx,sighty,sightz;
 
     std::vector<const aiScene*> scenes;
     std::vector<std::vector<unsigned int> > vboTrianglesId, vboTrianglesSize, iboTrianglesId, iboTrianglesSize;
@@ -133,6 +137,7 @@ protected:
     void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
     void drawMolecule(molecule mol);
     void drawCubeMap();
+    void drawCrosshair();
 
     CGMainWindow *main;
     QTimer *timer;
@@ -152,8 +157,9 @@ private:
     long long frameIndex = 0;
 
     QOpenGLShaderProgram p_Diffuse;
+    QOpenGLShaderProgram p_Color;
     QOpenGLShaderProgram p_Phong;
-    QMatrix4x4 projection,modelView;
+    QMatrix4x4 projection,modelView, icke,crosshairView;
     QOpenGLShaderProgram p_Cube;
     QOpenGLTexture *cubemap;
 };
