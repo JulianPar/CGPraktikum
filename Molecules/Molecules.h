@@ -53,25 +53,6 @@ public slots:
     void setPerspective();
     void setStereo();
 
-    void setBrass();
-    void setBronze();
-    void setPolishedBronze();
-    void setChrome();
-    void setCopper();
-    void setPolishedCopper();
-    void setGold();
-    void setPolishedGold();
-    void setPewter();
-    void setSilver();
-    void setPolishedSilver();
-    void setEmerald();
-    void setJade();
-    void setObsidian();
-    void setPearl();
-    void setRuby();
-    void setTurquoise();
-    void setBlackPlastic();
-    void setBlackRubber();
 
 public:
 
@@ -90,7 +71,6 @@ public:
     void initMaterials();
     void initializeGL();
     //void initializeOVR();
-    void loadStlFile(std::vector<QVector3D>&, const char*);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&); 
     void initSolidSphereVBO();
     void initCylinderVBO();
@@ -135,7 +115,6 @@ public:
 protected:
 
     void paintGL();
-    void paintGLVR();
     void resizeGL(int,int);
 
     void mouseMoveEvent(QMouseEvent*);
