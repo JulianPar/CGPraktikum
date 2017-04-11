@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>VertexTextureShader.glsl</file>
+        <file>FragmentTextureShader.glsl</file>
+        <file>Wood_13_UV_H_CM_1.jpg</file>
+        <file>ball.png</file>
+    </qresource>
+</RCC>
