@@ -25,18 +25,21 @@ struct atom{
     float radius;
     std::vector<std::pair<int,std::string>> bonds;
     QVector3D color;
-
+    std::vector<QVector3D> boundingBox;
 };
 
 struct residue{
     std::string rname;
     std::vector<atom> elements;
+    std::vector<QVector3D> boundingBox;
 };
 
 struct molecule{
     std::string name;
     std::vector<residue> parts;
     std::vector<QVector3D> positions;
+    std::vector<QVector3D> boundingBox;
+    QMatrix4x4 molView;
 };
 
 struct structure{
@@ -78,14 +81,17 @@ public:
     void initFBO();
     void initCubeMap(QString);
     void initCubeVBOandIBO();
-    void initCrosshair();
+    void initCrosshairVBO();
     void pressA();
     void pressB();
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&);
     void initSolidSphereVBO();
     void initCylinderVBO();
+    void updateBoundingBox(molecule mol);
 
+    std::vector<QVector3D> calculateBoundingBox(std::vector<QVector3D>, float);
     void pickLine(int,int,QVector3D&,QVector3D&);
+    void pickMolecule();
     double intersectTriangle(const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&);
     // double intersectTriangleSets(const QVector3D&,const QVector3D&,int&,int&);
 
@@ -105,23 +111,25 @@ public:
     std::vector<float> xPos,yPos;
     std::vector<QVector3D>central;
     int selectIndex=0;
-    bool buttonAPressed,buttonBPressed;
+    bool buttonAPressed,buttonBPressed,buttonXPressed,buttonYPressed;
 
     std::vector<atom> atoms;
     structure struc;
     bool flag;
-    QVector3D sightx,sighty,sightz;
+    QVector3D sightx,sighty,sightz, headPos;
 
     std::vector<const aiScene*> scenes;
     std::vector<std::vector<unsigned int> > vboTrianglesId, vboTrianglesSize, iboTrianglesId, iboTrianglesSize;
 
     int viewMode = 1, oldViewMode = 1;
+    bool showBoundingBox =false;
+    bool showCrossHair =true;
 
     std::vector<std::vector<QOpenGLTexture*> > textures;
 
     std::vector<GLuint> vboTriangleSetId;
-    GLuint vboSolidSphereId, vboCylinderId;
-    int vboSolidSphereSize, vboCylinderSize;
+    GLuint vboSolidSphereId, vboCylinderId, vboCrosshairId;
+    int vboSolidSphereSize, vboCylinderSize, vboCrosshairSize;
     GLuint vboCubeId, iboCubeId, vboCubeSize, iboCubeSize;
 
 protected:
@@ -133,9 +141,10 @@ protected:
     void mouseReleaseEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
 
-    void drawSolidSphere(const QVector3D&,float,const QVector3D);
-    void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
-    void drawMolecule(molecule mol);
+    void drawSolidSphere(const QVector3D&,float,const QVector3D,QMatrix4x4);
+    void drawBoundingBox(std::vector<QVector3D>,QMatrix4x4,QVector4D);
+    void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D,QMatrix4x4);
+    void drawMolecule(molecule mol,QMatrix4x4,bool);
     void drawCubeMap();
     void drawCrosshair();
 

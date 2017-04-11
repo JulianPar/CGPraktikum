@@ -27,8 +27,8 @@ void main() {
     float specular = 0.0;
 
 
-       float specAngle = max(dot(reflectDir, viewDir), 0.0);
-       specular = pow(specAngle,uShininess);
+      // float specAngle = max(dot(reflectDir, viewDir), 0.0);
+      // specular = pow(specAngle,uShininess);
 
 
    // gl_FragColor = vec4(normal,1);
