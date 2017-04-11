@@ -32,8 +32,31 @@ CGMainWindow::CGMainWindow (QWidget* parent) : QMainWindow (parent) {
     view->addAction("Orthogonal", this, SLOT(setOrthogonal()), Qt::CTRL+Qt::Key_O);
     view->addAction("Perspective", this, SLOT(setPerspective()), Qt::CTRL+Qt::Key_P);
     view->addAction("Stereo", this, SLOT(setStereo()), Qt::CTRL+Qt::Key_S);
-
+    view->addAction("Cardboard", this, SLOT(setCardboard()), Qt::CTRL+Qt::Key_C);
     menuBar()->addMenu(view);
+
+    QMenu *material = new QMenu("&Material",this);
+    material->addAction("Brass", this, SLOT(setBrass()), Qt::CTRL+Qt::Key_O);
+    material->addAction("Bronze", this, SLOT(setBronze()), Qt::CTRL+Qt::Key_P);
+    material->addAction("Polished Bronze", this, SLOT(setPolishedBronze()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Chrome", this, SLOT(setChrome()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Copper", this, SLOT(setCopper()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Polished Copper", this, SLOT(setPolishedCopper()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Gold", this, SLOT(setGold()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Polished Gold", this, SLOT(setPolishedGold()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Pewter", this, SLOT(setPewter()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Silver", this, SLOT(setSilver()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Polished Silver", this, SLOT(setPolishedSilver()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Emerald", this, SLOT(setEmerald()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Jade", this, SLOT(setJade()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Obsidian", this, SLOT(setObsidian()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Pearl", this, SLOT(setPearl()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Ruby", this, SLOT(setRuby()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Turquoise", this, SLOT(setTurquoise()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Black Plastic", this, SLOT(setBlackPlastic()), Qt::CTRL+Qt::Key_S);
+    material->addAction("Black Rubber", this, SLOT(setBlackRubber()), Qt::CTRL+Qt::Key_S);
+
+    menuBar()->addMenu(material);
 
     QFrame* f = new QFrame (this);
     f->setFrameStyle(QFrame::Sunken | QFrame::Panel);
@@ -67,7 +90,106 @@ void CGMainWindow::setStereo() {
     ogl->viewMode = 3;
     ogl->update();
 }
+void CGMainWindow::setCardboard() {
+    //ogl->oldViewMode = ogl->viewMode;
+    ogl->viewMode = 4;
+    ogl->update();
+}
 
+void CGMainWindow::setBrass() {
+    ogl->materialType = 0;
+    ogl->update();
+}
+
+void CGMainWindow::setBronze() {
+    ogl->materialType = 1;
+    ogl->update();
+}
+
+void CGMainWindow::setPolishedBronze() {
+    ogl->materialType = 2;
+    ogl->update();
+}
+
+void CGMainWindow::setChrome() {
+    ogl->materialType = 3;
+    ogl->update();
+}
+
+void CGMainWindow::setCopper() {
+    ogl->materialType = 4;
+    ogl->update();
+}
+
+void CGMainWindow::setPolishedCopper() {
+    ogl->materialType = 5;
+    ogl->update();
+}
+
+void CGMainWindow::setGold() {
+    ogl->materialType = 6;
+    ogl->update();
+}
+
+void CGMainWindow::setPolishedGold() {
+    ogl->materialType = 7;
+    ogl->update();
+}
+
+void CGMainWindow::setPewter() {
+    ogl->materialType = 8;
+    ogl->update();
+}
+
+void CGMainWindow::setSilver() {
+    ogl->materialType = 9;
+    ogl->update();
+}
+
+void CGMainWindow::setPolishedSilver() {
+    ogl->materialType = 10;
+    ogl->update();
+}
+
+void CGMainWindow::setEmerald() {
+    ogl->materialType = 11;
+    ogl->update();
+}
+
+void CGMainWindow::setJade() {
+    ogl->materialType = 12;
+    ogl->update();
+}
+
+void CGMainWindow::setObsidian() {
+    ogl->materialType = 13;
+    ogl->update();
+}
+
+void CGMainWindow::setPearl() {
+    ogl->materialType = 14;
+    ogl->update();
+}
+
+void CGMainWindow::setRuby() {
+    ogl->materialType = 15;
+    ogl->update();
+}
+
+void CGMainWindow::setTurquoise() {
+    ogl->materialType = 16;
+    ogl->update();
+}
+
+void CGMainWindow::setBlackPlastic() {
+    ogl->materialType = 17;
+    ogl->update();
+}
+
+void CGMainWindow::setBlackRubber() {
+    ogl->materialType = 18;
+    ogl->update();
+}
 
 MyGLWidget::MyGLWidget(CGMainWindow *mainwindow,QWidget* parent ) : QOpenGLWidget (parent) {
     main = mainwindow;
@@ -104,7 +226,23 @@ void loadStlFile(std::vector<QVector3D>& vertices, const char *filename) {
     instream.close();
 }
 
+void CGMainWindow::loadModel() {
+    QString fn = QFileDialog::getOpenFileName(this, "Load model ...", QString(), "STL files (*.stl)" );
 
+    if (fn.isEmpty()) return;
+    statusBar()->showMessage ("Loading model ...");
+
+    std::vector<QVector3D> vertices;
+    loadStlFile(vertices,fn.toLatin1());
+
+    ogl->triangleSet.push_back(vertices);
+    // ogl->initTrianglesVBO(vertices);
+    ogl->initSmoothTrianglesVBO(vertices);
+    ogl->updateBoundingBox(vertices);
+
+    ogl->update();
+    statusBar()->showMessage ("Loading model done.",3000);
+}
 
 void MyGLWidget::updateBoundingBox(const std::vector<QVector3D>& vertices) {
     for(int i=0;i<(int) vertices.size();i++) {
@@ -155,6 +293,14 @@ void MyGLWidget::refineSolidSphere(const std::vector<QVector3D>& sphere,std::vec
         refined.push_back(bc);
         refined.push_back(ca);
     }
+}
+
+void MyGLWidget::initFBO() {
+    if (viewMode < 3) return;
+    if (FBO != NULL) delete FBO;
+    QOpenGLFramebufferObjectFormat format;
+    format.setAttachment(QOpenGLFramebufferObject::Depth);
+    FBO = new QOpenGLFramebufferObject(width(),height(),format);
 }
 
 void MyGLWidget::initSolidSphereVBO() {
@@ -302,9 +448,105 @@ void MyGLWidget::initCylinderVBO(){
     vboCylinderSize = static_cast<int>(ico.size());
 }
 
+void MyGLWidget::initTrianglesVBO(const std::vector<QVector3D>& vertices) {
+    std::vector<QVector3D> vertexWithNormal;
+    GLuint id;
+    glGenBuffers(1,&id);
 
+    for(int i=0;i<(int) vertices.size();i+=3) {
+        const QVector3D& a = vertices[i+0];
+        const QVector3D& b = vertices[i+1];
+        const QVector3D& c = vertices[i+2];
+        QVector3D n = QVector3D::crossProduct(b-a,c-a);
+        n.normalize();
+        vertexWithNormal.push_back(a);
+        vertexWithNormal.push_back(n);
 
+        vertexWithNormal.push_back(b);
+        vertexWithNormal.push_back(n);
 
+        vertexWithNormal.push_back(c);
+        vertexWithNormal.push_back(n);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER,id);
+    glBufferData(GL_ARRAY_BUFFER,vertexWithNormal.size()*sizeof(QVector3D),vertexWithNormal.data(),GL_DYNAMIC_DRAW);
+
+    vboTriangleSetId.push_back(id);
+}
+
+void MyGLWidget::initSmoothTrianglesVBO(const std::vector<QVector3D>& vertices) {
+    int nv = (int) vertices.size();
+
+    std::vector<QVector3D> normals(nv);
+
+    for(int i=0;i<nv;i+=3) {
+        const QVector3D& a = vertices[i+0];
+        const QVector3D& b = vertices[i+1];
+        const QVector3D& c = vertices[i+2];
+        QVector3D n = QVector3D::crossProduct(b-a,c-a);
+        n.normalize();
+
+        normals[i+0] = n;
+        normals[i+1] = n;
+        normals[i+2] = n;
+    }
+
+    std::vector<int> vid(nv);
+
+    for(int i=0;i<nv;i++)
+        vid[i] = i;
+
+    struct VertexComparator {
+        const std::vector<QVector3D>& vertices;
+
+        VertexComparator(const std::vector<QVector3D>& v) : vertices(v) {}
+
+        bool operator()(int i,int j) {
+            if (vertices[i].x() < vertices[j].x()) return true;
+            if (vertices[i].x() > vertices[j].x()) return false;
+            if (vertices[i].y() < vertices[j].y()) return true;
+            if (vertices[i].y() > vertices[j].y()) return false;
+            if (vertices[i].z() < vertices[j].z()) return true;
+            return false;
+        }
+    } vertexLess(vertices);
+
+    std::sort(vid.begin(),vid.end(),vertexLess);
+
+    float eps = 1e-6;
+    int l = 0, r = 0;
+    while (r < nv) {
+        do {
+            r++;
+        } while ((r < nv) && (vertices[vid[l]].distanceToPoint(vertices[vid[r]]) < eps));
+
+        QVector3D s(0,0,0);
+        for(int i=l;i<r;i++)
+            s += normals[vid[i]];
+
+        s.normalize();
+
+        for(int i=l;i<r;i++)
+            normals[vid[i]] = s;
+
+        l = r;
+    }
+
+    std::vector<QVector3D> vertexWithNormal;
+    GLuint id;
+    glGenBuffers(1,&id);
+
+    for(int i=0;i<(int) vertices.size();i++) {
+        vertexWithNormal.push_back(vertices[i]);
+        vertexWithNormal.push_back(normals[i]);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER,id);
+    glBufferData(GL_ARRAY_BUFFER,vertexWithNormal.size()*sizeof(QVector3D),vertexWithNormal.data(),GL_DYNAMIC_DRAW);
+
+    vboTriangleSetId.push_back(id);
+}
 
 void MyGLWidget::initShaders() {
     setlocale(LC_NUMERIC,"C");
@@ -321,14 +563,56 @@ void MyGLWidget::initShaders() {
     if (!p_Phong.bind())
         close();
 
-    setlocale(LC_ALL,"");
+    /*if (!p_Diffuse.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/VertexShaderPhong.glsl"))
+        close();
+
+    if (!p_Diffuse.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/FragmentShaderPhong.glsl"))
+        close();
+
+    if (!p_Diffuse.link())
+        close();
+
+    if (!p_Diffuse.bind())
+        close();
+
+    setlocale(LC_ALL,"");*/
+}
+
+void MyGLWidget::initMaterials() {
+    float mat[19][11] = {
+        { 0.329412,0.223529,0.027451,0.780392,0.568627,0.113725,0.992157,0.941176,0.807843,27.8974,1.0},
+        { 0.2125,0.1275,0.054,0.714,0.4284,0.18144,0.393548,0.271906,0.166721,25.6,1.0 },
+        { 0.25,0.148,0.06475,0.4,0.2368,0.1036,0.774597,0.458561,0.200621,76.8,1.0 },
+        { 0.25,0.25,0.25,0.4,0.4,0.4,0.774597,0.774597,0.774597,76.8,1.0 },
+        { 0.19125,0.0735,0.0225,0.7038,0.27048,0.0828,0.256777,0.137622,0.086014,12.8,1.0 },
+        { 0.2295,0.08825,0.0275,0.5508,0.2118,0.066,0.580594,0.223257,0.0695701,51.2,1.0 },
+        { 0.24725,0.1995,0.0745,0.75164,0.60648,0.22648,0.628281,0.555802,0.366065,51.2,1.0 },
+        { 0.24725,0.2245,0.0645,0.34615,0.3143,0.0903,0.797357,0.723991,0.208006,83.2,1.0 },
+        { 0.105882,0.058824,0.113725,0.427451,0.470588,0.541176,0.333333,0.333333,0.521569,9.84615,1.0 },
+        { 0.19225,0.19225,0.19225,0.50754,0.50754,0.50754,0.508273,0.508273,0.508273,51.2,1.0 },
+        { 0.23125,0.23125,0.23125,0.2775,0.2775,0.2775,0.773911,0.773911,0.773911,89.6,1.0 },
+        { 0.0215,0.1745,0.0215,0.07568,0.61424,0.07568,0.633,0.727811,0.633,76.8,0.55 },
+        { 0.135,0.2225,0.1575,0.54,0.89,0.63,0.316228,0.316228,0.316228,12.8,0.95 },
+        { 0.05375,0.05,0.06625,0.18275,0.17,0.22525,0.332741,0.328634,0.346435,38.4,0.82 },
+        { 0.25,0.20725,0.20725,1.0,0.829,0.829,0.296648,0.296648,0.296648,11.264,0.922 },
+        { 0.1745,0.01175,0.01175,0.61424,0.04136,0.04136,0.727811,0.626959,0.626959,76.8,0.55 },
+        { 0.1,0.18725,0.1745,0.396,0.74151,0.69102,0.297254,0.30829,0.306678,12.8,0.8 },
+        { 0.0,0.0,0.0,0.01,0.01,0.01,0.50,0.50,0.50,32,1.0 },
+        { 0.02,0.02,0.02,0.01,0.01,0.01,0.4,0.4,0.4,10,1.0 }
+    };
+
+    for(int i=0;i<19;i++)
+        for(int j=0;j<11;j++)
+            material[i][j] = mat[i][j];
 }
 
 void MyGLWidget::initializeGL() {
     initializeOpenGLFunctions();
     initShaders();
+    initMaterials();
     initCylinderVBO();
     initSolidSphereVBO();
+    initFBO();
 
     glClearColor(0.5,0.5,0.5,1);
     // glClearColor(0,0,0,1);
@@ -339,6 +623,10 @@ void MyGLWidget::initializeGL() {
     bbMax[0] = bbMax[1] = bbMax[2] = -std::numeric_limits<double>::infinity();
     center[0] = center[1] = center[2] = 0.0;
     zoom = 1.0;
+    main->loadHin();
+
+    connect(&sensor, SIGNAL(readingChanged()), this, SLOT(update()));
+    sensor.start();
 }
 
 void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,const QVector3D color) {
@@ -360,11 +648,18 @@ void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,
     p_Phong.bind();
     p_Phong.setUniformValue("uMVMat", M);
     p_Phong.setUniformValue("uNMat", M.normalMatrix());
+    /*
+    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[t][6],material[t][7],material[t][8]));
+    p_Phong.setUniformValue("uShininess",material[t][9]);
+    */
+    //p_Phong.setUniformValue("uDiffuse",color);
 
-    p_Phong.setUniformValue("uAmbient",color*0.7);
-    p_Phong.setUniformValue("uDiffuse",QVector3D(color*0.8));
-   // p_Phong.setUniformValue("uSpecular",QVector3D(material[0][6],material[0][7],material[0][8]));
-   // p_Phong.setUniformValue("uShininess",material[0][9]);
+    p_Phong.setUniformValue("uAmbient",color);
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[0][3],material[0][4],material[0][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[0][6],material[0][7],material[0][8]));
+    p_Phong.setUniformValue("uShininess",material[0][9]);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboCylinderId);
     int vertexLocation = p_Phong.attributeLocation("a_position");
@@ -386,11 +681,18 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     p_Phong.bind();
     p_Phong.setUniformValue("uMVMat", M);
     p_Phong.setUniformValue("uNMat", M.normalMatrix());
+    /*
+    p_Phong.setUniformValue("uAmbient",QVector3D(material[t][0],material[t][1],material[t][2]));
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[t][3],material[t][4],material[t][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[t][6],material[t][7],material[t][8]));
+    p_Phong.setUniformValue("uShininess",material[t][9]);
+    */
+    //p_Phong.setUniformValue("uDiffuse",color);
 
-    p_Phong.setUniformValue("uAmbient",color*0.7);
-    p_Phong.setUniformValue("uDiffuse",color*0.8);
-    //p_Phong.setUniformValue("uSpecular",QVector3D(material[0][6],material[0][7],material[0][8]));
-    //p_Phong.setUniformValue("uShininess",material[0][9]);
+    p_Phong.setUniformValue("uAmbient",color);
+    p_Phong.setUniformValue("uDiffuse",QVector3D(material[0][3],material[0][4],material[0][5]));
+    p_Phong.setUniformValue("uSpecular",QVector3D(material[0][6],material[0][7],material[0][8]));
+    p_Phong.setUniformValue("uShininess",material[0][9]);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboSolidSphereId);
     int vertexLocation = p_Phong.attributeLocation("a_position");
@@ -399,7 +701,6 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     int normalLocation = p_Phong.attributeLocation("a_normal");
     p_Phong.enableAttributeArray(normalLocation);
     glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
-
     glDrawArrays(GL_TRIANGLES,0,vboSolidSphereSize);
 }
 
@@ -416,15 +717,12 @@ void MyGLWidget::drawTriangleSets() {
 
     for(int i=0;i<(int) triangleSet.size();i++) {
         glBindBuffer(GL_ARRAY_BUFFER,vboTriangleSetId[i]);
-
         int vertexLocation = p_Phong.attributeLocation("a_position");
         p_Phong.enableAttributeArray(vertexLocation);
         glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), 0);
-
         int normalLocation = p_Phong.attributeLocation("a_normal");
         p_Phong.enableAttributeArray(normalLocation);
         glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const GLvoid*) (3*sizeof(float)));
-
         glDrawArrays(GL_TRIANGLES,0,triangleSet[i].size());
     }
 }
@@ -437,38 +735,18 @@ void MyGLWidget::drawMolecule(molecule mol){
         }
     }
 
-
     for(int i=0;i<mol.parts.size();i++){
         for(int j=0;j<mol.parts[i].elements.size();j++){
             QVector3D pos1 = mol.parts[i].elements[j].pos;
-
             for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
                 int iBond = mol.parts[i].elements[j].bonds[k].first;
                // std::cout<<iBond<<"\n";
                 QVector3D pos2;
                 pos2=mol.positions[(iBond-1)];
                 drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
-
-               /* for(int saruman=0;saruman<mol.parts.size();saruman++){
-                    for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
-                            if(mol.parts[saruman].elements[countdoku].index==iBond){
-                                pos2 = mol.parts[saruman].elements[countdoku].pos;
-                                //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
-                                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
-                            }
-                        }
-                }*/
-
-
-
-
-
             }
-
         }
     }
-
-
 }
 
 double MyGLWidget::intersectTriangle(const QVector3D& p0,const QVector3D& p1,const QVector3D& a,const QVector3D& b,const QVector3D& c) {
@@ -600,6 +878,66 @@ void MyGLWidget::paintGL() {
     bottom = mynear*(-displayHeight/2-camY)/camZ;
     top    = mynear*( displayHeight/2-camY)/camZ;
 
+    /*QMatrix4x4 PLeft;
+    PLeft.frustum(left,right,bottom,top,mynear,myfar);
+    PLeft.translate(QVector3D(-camX,-camY,-camZ));
+
+    camX = 3;
+    left   = mynear*(-displayWidth/2-camX)/camZ;
+    right  = mynear*( displayWidth/2-camX)/camZ;
+    bottom = mynear*(-displayHeight/2-camY)/camZ;
+    top    = mynear*( displayHeight/2-camY)/camZ;
+
+    QMatrix4x4 PRight;
+    PRight.frustum(left,right,bottom,top,mynear,myfar);
+    PRight.translate(QVector3D(-camX,-camY,-camZ));*/
+
+    glColorMask(true,true,true,true);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    //drawSolidSphere(QVector3D(0,0,0),1);
+    if (viewMode == 4 /*&& oldViewMode != 4*/) initFBO();
+
+    rotReading = sensor.reading();
+    QQuaternion qNow = QQuaternion::fromEulerAngles(-rotReading->x(),-rotReading->y(),-rotReading->z());
+    modelView.setToIdentity();
+    modelView.rotate(90.0,0.0,0.0,1.0);
+    modelView.rotate(qNow);
+    modelView.rotate(90.0,1.0,0.0,0.0);
+
+    // modelView = RNow;
+    modelView.scale(15,15,15);
+    modelView.scale(zoom,zoom,zoom);
+    if (!showLattice) modelView.translate(-center);
+
+    /*float mynear = 10;
+    float myfar = 100;
+    float aspectratio = width()/(float) height();
+    if (viewMode == 4) aspectratio /= 2;
+    float displayHeight = 30;
+    float displayWidth = aspectratio*displayHeight;
+    float camX = 0;
+    float camY = 0;
+    float camZ = 50;
+    float left   = mynear*(-displayWidth/2-camX)/camZ;
+    float right  = mynear*( displayWidth/2-camX)/camZ;
+    float bottom = mynear*(-displayHeight/2-camY)/camZ;
+    float top    = mynear*( displayHeight/2-camY)/camZ;*/
+
+    projection.setToIdentity();
+    if (viewMode == 1)
+        projection.ortho(-displayWidth/2,displayWidth/2,-displayHeight/2,displayHeight/2,mynear,myfar);
+    if (viewMode == 2)
+        projection.frustum(left,right,bottom,top,mynear,myfar);
+
+    projection.translate(QVector3D(-camX,-camY,-camZ));
+
+    camX = -3;
+    left   = mynear*(-displayWidth/2-camX)/camZ;
+    right  = mynear*( displayWidth/2-camX)/camZ;
+    bottom = mynear*(-displayHeight/2-camY)/camZ;
+    top    = mynear*( displayHeight/2-camY)/camZ;
+
     QMatrix4x4 PLeft;
     PLeft.frustum(left,right,bottom,top,mynear,myfar);
     PLeft.translate(QVector3D(-camX,-camY,-camZ));
@@ -614,11 +952,6 @@ void MyGLWidget::paintGL() {
     PRight.frustum(left,right,bottom,top,mynear,myfar);
     PRight.translate(QVector3D(-camX,-camY,-camZ));
 
-    glColorMask(true,true,true,true);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //drawSolidSphere(QVector3D(0,0,0),1);
-
     if (viewMode == 3) {
         glColorMask(true,false,false,true);
         projection = PLeft;
@@ -629,65 +962,25 @@ void MyGLWidget::paintGL() {
         glColorMask(false,false,true,true);
         projection = PRight;
         drawTriangleSets();
+
+        drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2));
+        drawSolidSphere(QVector3D(0,2,0),0.3,QVector3D(0.2,0.2,0.2));
+        drawCylinder(QVector3D(1,0,0),QVector3D(0,2,0),0.1,QVector3D(0.1,0.1,0.1));
     } else {
-
-
-    for(int h=0;h<struc.mols.size();h++){
-        drawMolecule(struc.mols[h]);
+        for(int h=0;h<struc.mols.size();h++){
+            drawMolecule(struc.mols[h]);
     }
 
-/*
-    for(int h=0;h<struc.mols.size();h++){
-        for(int i=0;i<struc.mols[h].parts.size();i++){
-            for(int j=0;j<struc.mols[h].parts[i].elements.size();j++){
-                drawSolidSphere(struc.mols[h].parts.at(i).elements[j].pos,struc.mols[h].parts.at(i).elements[j].radius/200,struc.mols[h].parts.at(i).elements[j].color);
-            }
-        }
-    }
-    for(int h=0;h<struc.mols.size();h++){
-        for(int i=0;i<struc.mols[h].parts.size();i++){
-            for(int j=0;j<struc.mols[h].parts[i].elements.size();j++){
-                QVector3D pos1 = struc.mols[h].parts[i].elements[j].pos;
-                for(int k=0;k<struc.mols[h].parts[i].elements[j].bonds.size();k++){
-                    int iBond = struc.mols[h].parts[i].elements[j].bonds[k].first;
-                    QVector3D pos2;
-                    for(int saruman=0;saruman<struc.mols[h].parts.size();saruman++){
-                        for(int countdoku=0;countdoku<struc.mols[h].parts[saruman].elements.size();countdoku++){
-                                if(struc.mols[h].parts[saruman].elements[countdoku].index==iBond){
-                                    pos2 = struc.mols[h].parts[saruman].elements[countdoku].pos;
-                                    //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
-                                    drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
-                                }
-                            }
-                    }
-                }
-            }
-        }
-      }
-    /*
-    for(int i=0;i<atoms.size();i++){
-        for(int j=i;j<atoms[i].bonds.size();j++){
-            int iBond = atoms[i].bonds[j].first;
-            QVector3D pos1 = atoms[i].pos;
-            QVector3D pos2 = atoms[iBond-1].pos;
-            drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1));
-        }
-    }
-*/
-
-
-    if (struc.mols.size()==0){
+        if (struc.mols.size()==0){
         drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2));
         drawSolidSphere(QVector3D(0,2,0),0.3,QVector3D(0.2,0.2,0.2));
         drawCylinder(QVector3D(1,0,0),QVector3D(0,2,0),0.1,QVector3D(0.1,0.1,0.1));
         //drawCylinder(QVector3D(0,2,3),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
         //drawSolidSphere(QVector3D(0,3,0),1,QVector3D(0.2,0.2,0.2));
-       // drawCylinder(QVector3D(0,3,0),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
+        //drawCylinder(QVector3D(0,3,0),QVector3D(1,0,0),0.5,QVector3D(0.1,0.1,0.1));
+        }
+        //drawTriangleSets();
     }
-    drawTriangleSets();
-    }
-
-
 }
 
 void MyGLWidget::resizeGL(int width, int height) {

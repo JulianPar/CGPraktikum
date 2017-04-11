@@ -12,6 +12,9 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <QOpenGLFramebufferObject>
+#include <QRotationSensor>
+#include <QRotationReading>
 //#include <assimp/scene.h>
 //#include <OVR_CAPI_GL.h>
 
@@ -52,7 +55,26 @@ public slots:
     void setOrthogonal();
     void setPerspective();
     void setStereo();
-
+    void setCardboard();
+    void setBrass();
+    void setBronze();
+    void setPolishedBronze();
+    void setChrome();
+    void setCopper();
+    void setPolishedCopper();
+    void setGold();
+    void setPolishedGold();
+    void setPewter();
+    void setSilver();
+    void setPolishedSilver();
+    void setEmerald();
+    void setJade();
+    void setObsidian();
+    void setPearl();
+    void setRuby();
+    void setTurquoise();
+    void setBlackPlastic();
+    void setBlackRubber();
 
 public:
 
@@ -71,6 +93,7 @@ public:
     void initMaterials();
     void initializeGL();
     //void initializeOVR();
+    void loadStlFile(std::vector<QVector3D>&, const char*);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&); 
     void initSolidSphereVBO();
     void initCylinderVBO();
@@ -78,6 +101,8 @@ public:
     void initSmoothTrianglesVBO(const std::vector<QVector3D>&);
     void updateBoundingBox(const std::vector<QVector3D>&);
     void pickLine(int,int,QVector3D&,QVector3D&);
+    void initFBO();
+
     double intersectTriangle(const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&);
     double intersectTriangleSets(const QVector3D&,const QVector3D&,int&,int&);
     //void recursive_render(const aiScene*,const aiNode*,QMatrix4x4);
@@ -85,7 +110,8 @@ public:
     QVector3D mouseToTrackball(int,int);
     // QQuaternion trackball(const QVector3D&,const QVector3D&);
     QMatrix4x4 trackball(const QVector3D&, const QVector3D&);
-
+    QRotationSensor sensor;
+    QRotationReading* rotReading;
     float maxLen,zoom;
     float material[19][11];
     QVector3D center,bbMin,bbMax;
@@ -112,9 +138,13 @@ public:
     GLuint vboSolidSphereId, vboCylinderId;
     int vboSolidSphereSize, vboCylinderSize;
 
+    bool showLattice = false;
+    QOpenGLFramebufferObject* FBO = NULL;
+
 protected:
 
     void paintGL();
+    void paintGLVR();
     void resizeGL(int,int);
 
     void mouseMoveEvent(QMouseEvent*);
