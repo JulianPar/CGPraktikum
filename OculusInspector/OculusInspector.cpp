@@ -542,6 +542,13 @@ ogl->yPos.push_back(0.0f);
 for(int h=0;h<ogl->struc.mols.size();h++){
     //std::cout<<"h = "<<h<<std::endl;
     ogl->struc.mols[h].boundingBox = ogl->calculateBoundingBox(ogl->struc.mols[h].positions,1.0f);
+    for(int g=0;g<ogl->struc.mols[h].parts.size();g++){
+        std::vector<QVector3D> positions;
+        for(int k=0;k<ogl->struc.mols[h].parts[g].elements.size();k++){
+             positions.push_back(ogl->struc.mols[h].parts[g].elements[k].pos);
+        }
+        ogl->struc.mols[h].parts[g].boundingBox = ogl->calculateBoundingBox(positions,1.0f);
+    }
 }
 
     }
@@ -668,11 +675,11 @@ std::vector<QVector3D> MyGLWidget::calculateBoundingBox(std::vector<QVector3D> k
             xmax = x;
         if(y<ymin)
             ymin = y;
-        if(y>xmax)
+        if(y>ymax)
             ymax = y;
-        if(z<xmin)
+        if(z<zmin)
             zmin = z;
-        if(z>xmax)
+        if(z>zmax)
             zmax = z;
     }
 
@@ -891,6 +898,7 @@ void MyGLWidget::initCubeVBOandIBO() {
     // std::vector<unsigned int> iboCube(indices+0,indices+36);
 
     std::vector<unsigned int> iboCube { 0,1,2,1,3,2,4,6,5,6,7,5,0,4,5,0,5,1,2,7,6,2,3,7,7,3,1,7,1,5,0,2,6,0,6,4 };
+    std::vector<unsigned int> iboWireBox { 0,1,0,2,0,4,3,2,3,7,3,1,6,2,6,7,6,4,5,7,5,4,5,1};
 
     glGenBuffers(1,&vboCubeId);
 
@@ -900,14 +908,23 @@ void MyGLWidget::initCubeVBOandIBO() {
     vboCubeSize = (unsigned int) vboCube.size();
 
     glGenBuffers(1,&iboCubeId);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboCubeId);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,iboCube.size()*sizeof(unsigned int),iboCube.data(),GL_STATIC_DRAW);
 
     iboCubeSize = (unsigned int) iboCube.size();
+
+
+    glGenBuffers(1,&iboWireBoxId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboWireBoxId);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,iboWireBox.size()*sizeof(unsigned int),iboWireBox.data(),GL_STATIC_DRAW);
+
+    iboWireBoxSize = (unsigned int) iboWireBox.size();
+
 }
 
+
 void MyGLWidget::initCubeMap(QString name) {
+
     const QImage posx = QImage(QString("_positive_x.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
     const QImage posy = QImage(QString("_positive_y.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
     const QImage posz = QImage(QString("_positive_z.jpg").prepend(name)).convertToFormat(QImage::Format_RGBA8888);
@@ -1412,13 +1429,13 @@ void MyGLWidget::drawBoundingBox(std::vector<QVector3D> box,QMatrix4x4 molView,Q
     p_Color.setUniformValue("uDiffuse",color);
 
     glBindBuffer(GL_ARRAY_BUFFER,vboCubeId);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboCubeId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboWireBoxId);
 
     int vertexLocation = p_Color.attributeLocation("a_position");
     p_Color.enableAttributeArray(vertexLocation);
     glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), 0);
 
-    glDrawElements(GL_LINES,iboCubeSize,GL_UNSIGNED_INT,0);
+    glDrawElements(GL_LINES,iboWireBoxSize,GL_UNSIGNED_INT,0);
 
 
 }
@@ -1473,9 +1490,19 @@ void MyGLWidget::drawMolecule(molecule mol,QMatrix4x4 molView,bool selected){
             drawBoundingBox(mol.boundingBox,molView,QVector4D(1.0f,1.0f,1.0f,0.5f));
     }
 
+    if(showResidues){
+        for(int i=0;i<mol.parts.size();i++){   
+            drawBoundingBox(mol.parts[i].boundingBox,molView,QVector4D(0.6f,0.6f,0,0.5f));
+        }     
+    }
     if(selected){
         drawBoundingBox(mol.boundingBox,molView,QVector4D(1.0f,0.0f,0.0f,0.5f));
+
+        if(selectResIndex>=0&(selectResIndex<mol.parts.size()))
+            drawBoundingBox(mol.parts[selectResIndex].boundingBox,molView,QVector4D(0.0f,0.7f,0.9f,0.5f));
     }
+
+
 
 }
 
@@ -1600,17 +1627,29 @@ QMatrix4x4 MyGLWidget::trackball(const QVector3D& u, const QVector3D& v) {
     return R;
 }
 void MyGLWidget::pressA(){
-    //if(selectIndex<struc.mols.size())
-    //    selectIndex++;
-    std::cout<<"selected Molecule : "<<selectIndex<<"\n";
+    //if(selectMolIndex<struc.mols.size())
+    //    selectMolIndex++;
+    std::cout<<"selected Molecule : "<<selectMolIndex<<"\n";
     pickMolecule();
     update();
 }
 void MyGLWidget::pressB(){
-    //if(selectIndex>=struc.mols.size()-1)
-    //     selectIndex--;
-
+    //if(selectMolIndex>=struc.mols.size()-1)
+    //     selectMolIndex--;
+    std::cout<<"selected Molecule : "<<selectMolIndex<<"\n";
+    std::cout<<"selected Residue : "<<selectResIndex<<"\n";
+    pickResidue();
     update();
+}
+
+void MyGLWidget::dance(){
+    if(struc.mols.size()!=0){
+        for(int i=0;i<struc.mols.size();i++){
+            phiMol[i]+=3-i*2;
+            thetaMol[i]+=3-i*2;
+        }
+
+   }
 }
 
 void MyGLWidget::paintGL() {
@@ -1684,7 +1723,6 @@ void MyGLWidget::paintGL() {
              if (buttonAPressed&!(inputState.Buttons & ovrButton_A))
                  {
                pressA();
-
              }
              buttonAPressed = inputState.Buttons & ovrButton_A;
 
@@ -1697,14 +1735,13 @@ void MyGLWidget::paintGL() {
              if (buttonXPressed&!(inputState.Buttons & ovrButton_X))
                  {
                showBoundingBox=!showBoundingBox;
-
              }
              buttonXPressed = inputState.Buttons & ovrButton_X;
 
 
              if (buttonYPressed&!(inputState.Buttons & ovrButton_Y))
                  {
-               showCrossHair=!showCrossHair;
+                 showResidues= !showResidues;
 
              }
              buttonYPressed = inputState.Buttons & ovrButton_Y;
@@ -1716,8 +1753,8 @@ void MyGLWidget::paintGL() {
                  //std::cout<<"x : "<<ve.x<<std::endl;
                  //std::cout<<"y : "<<ve.y<<std::endl;
                  if(struc.mols.size()!=0){
-                     phiMol[selectIndex]+=ve.y;
-                     thetaMol[selectIndex]+=ve.x;
+                     phiMol[selectMolIndex]+=ve.y;
+                     thetaMol[selectMolIndex]+=ve.x;
                 }
 
              }
@@ -1726,10 +1763,10 @@ void MyGLWidget::paintGL() {
                 // std::cout<<inputState.Thumbstick[1].x;
                  //std::cout<<inputState.Thumbstick[1].y;
                  if(struc.mols.size()!=0){
-                     xPos[selectIndex]+=(vp.x/2);
-                     yPos[selectIndex]+=(vp.y/2);
-                     //translation[selectIndex]= yPos[selectIndex]*sightz + xPos[selectIndex]*sighty;
-                     translation[selectIndex].translate(vp.x,vp.y,0);
+                     xPos[selectMolIndex]+=(vp.x/2);
+                     yPos[selectMolIndex]+=(vp.y/2);
+                     //translation[selectMolIndex]= yPos[selectMolIndex]*sightz + xPos[selectMolIndex]*sighty;
+                     translation[selectMolIndex].translate(vp.x,vp.y,0);
 
                  }
              }
@@ -1754,10 +1791,20 @@ void MyGLWidget::paintGL() {
                  QVector3D t = s*sighty;
                  icke.translate(t);
              }
-             if(inputState.Buttons&ovrButton_RShoulder){
+             if(buttonRPressed&!(inputState.Buttons&ovrButton_RShoulder)){
                  std::cout<<"RS \n";
+                 iWannaDance = !iWannaDance;
              }
+             buttonRPressed = inputState.Buttons & ovrButton_RShoulder;
 
+             if(iWannaDance)
+                 dance();
+
+             if(buttonLPressed&!(inputState.Buttons&ovrButton_LShoulder)){
+                std::cout<<"RS \n";
+                showCrossHair=!showCrossHair;
+             }
+             buttonLPressed = inputState.Buttons & ovrButton_LShoulder;
 
 
              double frameTiming = ovr_GetPredictedDisplayTime(session, frameIndex);
@@ -1912,7 +1959,7 @@ void MyGLWidget::paintGL() {
 
                     bool selected =false;
 
-                    if(selectIndex == i)
+                    if(selectMolIndex == i)
                         selected = true;
 
                     drawMolecule(struc.mols[i],struc.mols[i].molView,selected);
@@ -2025,7 +2072,7 @@ void MyGLWidget::wheelEvent(QWheelEvent* event) {
 
 void MyGLWidget::pickMolecule(){
     double l;
-    selectIndex = -1;
+    selectMolIndex = -1;
     for(int i = 0;i<struc.mols.size();i++){
         for(int j=0;j<struc.mols[i].boundingBox.size()-2;j++){
             QVector3D a = struc.mols[i].boundingBox[j];
@@ -2042,10 +2089,41 @@ void MyGLWidget::pickMolecule(){
             //std::cout<<"L = "<< l<<std::endl;
             if(l<1.0){
                 std::cout<<"Hit Molecule i = "<< i<<std::endl;
-                selectIndex = i;
+                selectMolIndex = i;
                 break;
             }
 
+        }
+    }
+
+}
+
+void MyGLWidget::pickResidue(){
+    double l;
+    selectResIndex = -1;
+    pickMolecule();
+
+    if(selectMolIndex>=0){
+        for(int k=0;k<struc.mols[selectMolIndex].parts.size();k++){
+            for(int j=0;j<struc.mols[selectMolIndex].parts[k].boundingBox.size()-2;j++){
+                QVector3D a = struc.mols[selectMolIndex].parts[k].boundingBox[j];
+                QVector3D b = struc.mols[selectMolIndex].parts[k].boundingBox[j+1];
+                QVector3D c = struc.mols[selectMolIndex].parts[k].boundingBox[j+2];
+
+
+                QVector4D u = (projection*struc.mols[selectMolIndex].molView).inverted()*QVector4D(0,0,-1,1);
+                QVector4D v = (projection*struc.mols[selectMolIndex].molView).inverted()*QVector4D(0,0,1,1);
+                QVector3D p0 = u.toVector3DAffine();
+                QVector3D p1 = v.toVector3DAffine();
+
+                l = intersectTriangle(p0,p1,a,b,c);
+                //std::cout<<"L = "<< l<<std::endl;
+                if(l<1.0){
+                    std::cout<<"Hit Residue k = "<< k<<std::endl;
+                    selectResIndex = k;
+                    break;
+                }
+            }
         }
     }
 

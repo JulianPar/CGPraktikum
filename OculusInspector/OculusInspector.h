@@ -84,6 +84,7 @@ public:
     void initCrosshairVBO();
     void pressA();
     void pressB();
+    void dance();
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&);
     void initSolidSphereVBO();
     void initCylinderVBO();
@@ -92,6 +93,7 @@ public:
     std::vector<QVector3D> calculateBoundingBox(std::vector<QVector3D>, float);
     void pickLine(int,int,QVector3D&,QVector3D&);
     void pickMolecule();
+    void pickResidue();
     double intersectTriangle(const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&);
     // double intersectTriangleSets(const QVector3D&,const QVector3D&,int&,int&);
 
@@ -111,8 +113,10 @@ public:
     std::vector<QMatrix4x4> translation;
     std::vector<float> xPos,yPos;
     std::vector<QVector3D>central;
-    int selectIndex=0;
-    bool buttonAPressed,buttonBPressed,buttonXPressed,buttonYPressed;
+    int selectMolIndex=-1;
+    int selectResIndex=-1;
+    bool buttonAPressed,buttonBPressed,buttonXPressed,buttonYPressed,buttonRPressed,buttonLPressed;
+    bool iWannaDance;
 
     std::vector<atom> atoms;
     structure struc;
@@ -124,6 +128,7 @@ public:
 
     int viewMode = 1, oldViewMode = 1;
     bool showBoundingBox =false;
+    bool showResidues =false;
     bool showCrossHair =true;
 
     std::vector<std::vector<QOpenGLTexture*> > textures;
@@ -131,7 +136,7 @@ public:
     std::vector<GLuint> vboTriangleSetId;
     GLuint vboSolidSphereId, vboCylinderId, vboCrosshairId;
     int vboSolidSphereSize, vboCylinderSize, vboCrosshairSize;
-    GLuint vboCubeId, iboCubeId, vboCubeSize, iboCubeSize;
+    GLuint vboCubeId, iboCubeId, iboWireBoxId, vboCubeSize, iboCubeSize,iboWireBoxSize;
 
 protected:
 

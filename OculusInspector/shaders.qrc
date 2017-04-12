@@ -32,5 +32,11 @@
         <file>Maps/Park_positive_z.jpg</file>
         <file>FragmentShaderColor.glsl</file>
         <file>VertexShaderColor.glsl</file>
+        <file>Maps/boulder-bay_negative_x.tga</file>
+        <file>Maps/boulder-bay_negative_y.tga</file>
+        <file>Maps/boulder-bay_negative_z.tga</file>
+        <file>Maps/boulder-bay_positive_x.tga</file>
+        <file>Maps/boulder-bay_positive_y.tga</file>
+        <file>Maps/boulder-bay_positive_z.tga</file>
     </qresource>
 </RCC>
