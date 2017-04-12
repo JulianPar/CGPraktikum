@@ -108,6 +108,7 @@ public:
     QMatrix4x4 RNow;
     float phi,theta;
     std::vector<float> phiMol, thetaMol;
+    std::vector<QMatrix4x4> translation;
     std::vector<float> xPos,yPos;
     std::vector<QVector3D>central;
     int selectIndex=0;

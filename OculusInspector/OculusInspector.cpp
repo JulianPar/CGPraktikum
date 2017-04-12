@@ -532,6 +532,9 @@ ogl->central.push_back(QVector3D{centralx,centraly,centralz});
 ogl->struc.mols.push_back(m);
 ogl->phiMol.push_back(0.0f);
 ogl->thetaMol.push_back(0.0f);
+QMatrix4x4 M;
+M.setToIdentity();
+ogl->translation.push_back(M);
 ogl->xPos.push_back(0.0f);
 ogl->yPos.push_back(0.0f);
 
@@ -675,13 +678,14 @@ std::vector<QVector3D> MyGLWidget::calculateBoundingBox(std::vector<QVector3D> k
 
     std::vector<QVector3D> box;
     box.push_back(QVector3D(xmin,ymin,zmin));
-    box.push_back(QVector3D(xmin,ymin,zmax));
-    box.push_back(QVector3D(xmin,ymax,zmin));
-    box.push_back(QVector3D(xmin,ymax,zmax));
     box.push_back(QVector3D(xmax,ymin,zmin));
-    box.push_back(QVector3D(xmax,ymin,zmax));
+    box.push_back(QVector3D(xmin,ymax,zmin));
     box.push_back(QVector3D(xmax,ymax,zmin));
+    box.push_back(QVector3D(xmin,ymin,zmax));
+    box.push_back(QVector3D(xmax,ymin,zmax));
+    box.push_back(QVector3D(xmin,ymax,zmax));
     box.push_back(QVector3D(xmax,ymax,zmax));
+
 
 
     return box;
@@ -1266,7 +1270,7 @@ void MyGLWidget::initializeGL() {
     initCrosshairVBO();
     initializeOVR();
     initCubeVBOandIBO();
-    initCubeMap(QString(":/Maps/Lobby"));
+    initCubeMap(QString(":/Maps/Church"));
 
     glClearColor(0.6,0.6,0.6,1);
 
@@ -1349,6 +1353,8 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
     */
     //p_Phong.setUniformValue("uDiffuse",color);
 
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     p_Phong.setUniformValue("uAmbient",color*0.7);
 
     p_Phong.setUniformValue("uDiffuse",color*0.8);
@@ -1388,8 +1394,7 @@ void MyGLWidget::drawBoundingBox(std::vector<QVector3D> box,QMatrix4x4 molView,Q
 
     M.translate(c);
     M.scale(sx,sy,sz);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 /*
     float aspect = (float) width()/height();
     projection.setToIdentity();
@@ -1404,7 +1409,7 @@ void MyGLWidget::drawBoundingBox(std::vector<QVector3D> box,QMatrix4x4 molView,Q
     p_Color.setUniformValue("uMVMat", M);
     p_Color.setUniformValue("uNMat", M.normalMatrix());
     p_Color.setUniformValue("uPMat", this->projection);
-    p_Color.setUniformValue("uDiffuse",QVector3D(color.x(),color.y(),color.z()));
+    p_Color.setUniformValue("uDiffuse",color);
 
     glBindBuffer(GL_ARRAY_BUFFER,vboCubeId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,iboCubeId);
@@ -1413,7 +1418,7 @@ void MyGLWidget::drawBoundingBox(std::vector<QVector3D> box,QMatrix4x4 molView,Q
     p_Color.enableAttributeArray(vertexLocation);
     glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), 0);
 
-    glDrawElements(GL_TRIANGLES,iboCubeSize,GL_UNSIGNED_INT,0);
+    glDrawElements(GL_LINES,iboCubeSize,GL_UNSIGNED_INT,0);
 
 
 }
@@ -1428,7 +1433,7 @@ void MyGLWidget::drawCrosshair() {
     p_Color.setUniformValue("uMVMat", crosshairView);
     p_Color.setUniformValue("uNMat", crosshairView.normalMatrix());
     p_Color.setUniformValue("uPMat", this->projection);
-    p_Color.setUniformValue("uDiffuse",QVector3D(1,1,1));
+    p_Color.setUniformValue("uDiffuse",QVector4D(1.0,1.0,1.0,1.0));
 
 
     glBindBuffer(GL_ARRAY_BUFFER, vboCrosshairId);
@@ -1464,18 +1469,19 @@ void MyGLWidget::drawMolecule(molecule mol,QMatrix4x4 molView,bool selected){
     }
 
     if(showBoundingBox){
-        drawBoundingBox(mol.boundingBox,molView,QVector4D(0.0f,0.0f,0.7f,1.0f));
+        if(!selected)
+            drawBoundingBox(mol.boundingBox,molView,QVector4D(1.0f,1.0f,1.0f,0.5f));
     }
-/*
+
     if(selected){
-        drawBoundingBox(mol.boundingBox,molView,QVector4D(0.7f,0.0f,0.0f,1.0f));
+        drawBoundingBox(mol.boundingBox,molView,QVector4D(1.0f,0.0f,0.0f,0.5f));
     }
-*/
+
 }
 
 void MyGLWidget::drawCubeMap(){
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 /*
     float aspect = (float) width()/height();
@@ -1594,16 +1600,16 @@ QMatrix4x4 MyGLWidget::trackball(const QVector3D& u, const QVector3D& v) {
     return R;
 }
 void MyGLWidget::pressA(){
-    if(selectIndex<struc.mols.size())
-        selectIndex++;
-    std::cout<<selectIndex<<"\n";
-    //pickMolecule();
+    //if(selectIndex<struc.mols.size())
+    //    selectIndex++;
+    std::cout<<"selected Molecule : "<<selectIndex<<"\n";
+    pickMolecule();
     update();
 }
 void MyGLWidget::pressB(){
-    if(selectIndex>=struc.mols.size()-1)
-         selectIndex--;
-     std::cout<<selectIndex<<"\n";
+    //if(selectIndex>=struc.mols.size()-1)
+    //     selectIndex--;
+
     update();
 }
 
@@ -1722,6 +1728,9 @@ void MyGLWidget::paintGL() {
                  if(struc.mols.size()!=0){
                      xPos[selectIndex]+=(vp.x/2);
                      yPos[selectIndex]+=(vp.y/2);
+                     //translation[selectIndex]= yPos[selectIndex]*sightz + xPos[selectIndex]*sighty;
+                     translation[selectIndex].translate(vp.x,vp.y,0);
+
                  }
              }
              if((inputState.Buttons&ovrButton_Up)){
@@ -1883,11 +1892,16 @@ void MyGLWidget::paintGL() {
             //Draw molecules with rotation and position
             if(struc.mols.size()!=0)
                 for(int i=0;i<struc.mols.size();i++){
-                    QMatrix4x4 mat;
-                    mat.setToIdentity();
-                    //QVector t = xPos[i]*sightz+yPos[i];
+                    QMatrix4x4 mat; 
+                    //QVector3D t = xPos[i]*sightz+yPos[i]*sighty+central[i];
+                    /*
                     mat.translate(xPos[i],0,0);
                     mat.translate(0,yPos[i],0);
+                    mat.translate(central[i]);
+                    */
+                    mat.setToIdentity();
+                    mat = mat*translation[i];
+                    //mat.translate(translation[i]);
                     mat.translate(central[i]);
                     mat.rotate(thetaMol[i],0,0,1);
                     mat.rotate(phiMol[i],0,1,0);
@@ -2011,25 +2025,27 @@ void MyGLWidget::wheelEvent(QWheelEvent* event) {
 
 void MyGLWidget::pickMolecule(){
     double l;
+    selectIndex = -1;
     for(int i = 0;i<struc.mols.size();i++){
         for(int j=0;j<struc.mols[i].boundingBox.size()-2;j++){
             QVector3D a = struc.mols[i].boundingBox[j];
             QVector3D b = struc.mols[i].boundingBox[j+1];
             QVector3D c = struc.mols[i].boundingBox[j+2];
 
-            a= projection*struc.mols[i].molView*a;
-            b= projection*struc.mols[i].molView*b;
-            c= projection*struc.mols[i].molView*c;
 
-            QVector2D p(-1.0,1.0);
-            QMatrix4x4 PM = projection*modelView;
-            QVector4D u = PM.inverted()*QVector4D(p[0],p[1],-1.0,1.0);
-            QVector4D v = PM.inverted()*QVector4D(p[0],p[1],1.0,1.0);
+            QVector4D u = (projection*struc.mols[i].molView).inverted()*QVector4D(0,0,-1,1);
+            QVector4D v = (projection*struc.mols[i].molView).inverted()*QVector4D(0,0,1,1);
             QVector3D p0 = u.toVector3DAffine();
             QVector3D p1 = v.toVector3DAffine();
 
             l = intersectTriangle(p0,p1,a,b,c);
-            std::cout<<"L = "<< l<<std::endl;
+            //std::cout<<"L = "<< l<<std::endl;
+            if(l<1.0){
+                std::cout<<"Hit Molecule i = "<< i<<std::endl;
+                selectIndex = i;
+                break;
+            }
+
         }
     }
 
