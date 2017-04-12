@@ -12,9 +12,6 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
-#include <QOpenGLFramebufferObject>
-#include <QRotationSensor>
-#include <QRotationReading>
 //#include <assimp/scene.h>
 //#include <OVR_CAPI_GL.h>
 
@@ -51,30 +48,13 @@ class CGMainWindow : public QMainWindow {
 public slots:
 
     void loadHin();
-    void loadModel();
     void setOrthogonal();
     void setPerspective();
     void setStereo();
-    void setCardboard();
-    void setBrass();
-    void setBronze();
-    void setPolishedBronze();
-    void setChrome();
-    void setCopper();
-    void setPolishedCopper();
-    void setGold();
-    void setPolishedGold();
-    void setPewter();
-    void setSilver();
-    void setPolishedSilver();
-    void setEmerald();
-    void setJade();
-    void setObsidian();
-    void setPearl();
-    void setRuby();
-    void setTurquoise();
-    void setBlackPlastic();
-    void setBlackRubber();
+    void setBallStick();
+    void setTubes();
+    void setLine();
+
 
 public:
 
@@ -93,16 +73,15 @@ public:
     void initMaterials();
     void initializeGL();
     //void initializeOVR();
-    void loadStlFile(std::vector<QVector3D>&, const char*);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&); 
     void initSolidSphereVBO();
     void initCylinderVBO();
+    void initLineVBO(QVector3D c, QVector3D d);
     void initTrianglesVBO(const std::vector<QVector3D>&);
     void initSmoothTrianglesVBO(const std::vector<QVector3D>&);
     void updateBoundingBox(const std::vector<QVector3D>&);
     void pickLine(int,int,QVector3D&,QVector3D&);
-    void initFBO();
-
+    void createLinesVBO(molecule mol);
     double intersectTriangle(const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&,const QVector3D&);
     double intersectTriangleSets(const QVector3D&,const QVector3D&,int&,int&);
     //void recursive_render(const aiScene*,const aiNode*,QMatrix4x4);
@@ -110,8 +89,7 @@ public:
     QVector3D mouseToTrackball(int,int);
     // QQuaternion trackball(const QVector3D&,const QVector3D&);
     QMatrix4x4 trackball(const QVector3D&, const QVector3D&);
-    QRotationSensor sensor;
-    QRotationReading* rotReading;
+
     float maxLen,zoom;
     float material[19][11];
     QVector3D center,bbMin,bbMax;
@@ -132,29 +110,31 @@ public:
     structure struc;
     bool flag;
 
-    int viewMode = 1, materialType = 0;
+    int viewMode = 1, representation=1;
     std::vector<std::vector<QVector3D> > triangleSet;
     std::vector<GLuint> vboTriangleSetId;
-    GLuint vboSolidSphereId, vboCylinderId;
-    int vboSolidSphereSize, vboCylinderSize;
-
-    bool showLattice = false;
-    QOpenGLFramebufferObject* FBO = NULL;
+    GLuint vboSolidSphereId, vboCylinderId,vboLineId,molLinesId;
+    int vboSolidSphereSize, vboCylinderSize,vboLineSize;
+    std::vector<QVector3D> lineVBO;
+    std::vector<QVector3D> molLines;
 
 protected:
 
     void paintGL();
-    void paintGLVR();
     void resizeGL(int,int);
 
     void mouseMoveEvent(QMouseEvent*);
     void mousePressEvent(QMouseEvent*);
     void mouseReleaseEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
+    void drawLine();
     void drawSolidSphere(const QVector3D&,float,const QVector3D);
     void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D);
+    void drawCylinderT(const QVector3D&,const QVector3D&,float,const QVector3D);
     void drawTriangleSets();
-    void drawMolecule(molecule);
+    void drawMoleculeBS(molecule);
+    void drawMoleculeT(molecule);
+
     CGMainWindow *main;
     int mouseX,mouseY,button;
     // float phi = 30.0, theta = 10.0;
@@ -163,6 +143,7 @@ private:
     //ovrSession session;
     QOpenGLShaderProgram p_Diffuse;
     QOpenGLShaderProgram p_Phong;
+    QOpenGLShaderProgram p_Lines;
     QMatrix4x4 projection,modelView;
 };
 

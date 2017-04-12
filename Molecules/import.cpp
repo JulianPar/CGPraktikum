@@ -156,11 +156,12 @@ ogl->struc.mols.push_back(m);
     QString fn2 = QFileDialog::getOpenFileName(this, "Load Ice Cube Data ...", QString(), "txt files (*.txt)" );
     if (fn2.isEmpty()) return;
     std::cout<<"Loading Radius"<<std::endl;
-
+    //loading atomic radii and coloring the atoms using cpk coloring
     std::ifstream ist(fn2.toLatin1(),std::ios::binary);
     std::vector<std::tuple<std::string,float,QVector3D>> vec;
     int count=0;
     if(ist.is_open()){
+        std::cout << "is_open0" << "\n";
        while(!ist.eof()){
            float value;
            std::string key;
@@ -194,5 +195,9 @@ ogl->struc.mols.push_back(m);
     }
     std::cout<<"finished loading"<<"\n";
     ogl->flag = true;
+    for (int i=0;i<ogl->struc.mols.size();i++){
+       ogl->createLinesVBO(ogl->struc.mols[i]);
+    }
+
     ogl->update();
 }
