@@ -38,5 +38,7 @@
         <file>Maps/boulder-bay_positive_x.tga</file>
         <file>Maps/boulder-bay_positive_y.tga</file>
         <file>Maps/boulder-bay_positive_z.tga</file>
+        <file>vertexshaderline.glsl</file>
+        <file>fragmentshaderline.glsl</file>
     </qresource>
 </RCC>

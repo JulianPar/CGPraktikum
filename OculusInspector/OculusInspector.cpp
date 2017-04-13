@@ -50,6 +50,13 @@ CGMainWindow::CGMainWindow (QWidget* parent) : QMainWindow (parent) {
     view->addAction("Center", ogl, SLOT(centerEye()), Qt::CTRL+Qt::Key_B);
 
     menuBar()->addMenu(view);
+
+    QMenu *rep = new QMenu("&Representation",this);
+    rep->addAction("Ball and Stick", this, SLOT(setBallStick()), Qt::CTRL+Qt::Key_O);
+    rep->addAction("Stick", this, SLOT(setTubes()), Qt::CTRL+Qt::Key_P);
+    rep->addAction("Line", this, SLOT(setLine()), Qt::CTRL+Qt::Key_S);
+
+    menuBar()->addMenu(rep);
     QHBoxLayout* layout = new QHBoxLayout();
     layout->addWidget(ogl);
     layout->setMargin(0);
@@ -63,15 +70,40 @@ CGMainWindow::CGMainWindow (QWidget* parent) : QMainWindow (parent) {
 CGMainWindow::~CGMainWindow () {}
 
 void CGMainWindow::setOrthogonal() {
-    ogl->oldViewMode = ogl->viewMode;
+    //ogl->oldViewMode = ogl->viewMode;
     ogl->viewMode = 1;
     ogl->update();
 }
 
 void CGMainWindow::setOculus() {
-    ogl->oldViewMode = ogl->viewMode;
+    //ogl->oldViewMode = ogl->viewMode;
     ogl->viewMode = 2;
     ogl->update();
+}
+void CGMainWindow::setBallStick() {
+
+    ogl->representation = 1;
+
+    ogl->update();
+
+}
+
+
+
+void CGMainWindow::setTubes() {
+
+    ogl->representation = 2;
+
+    ogl->update();
+
+}
+
+void CGMainWindow::setLine() {
+
+    ogl->representation = 3;
+
+    ogl->update();
+
 }
 
 void MyGLWidget::centerEye() {
@@ -635,7 +667,11 @@ for(int h=0;h<ogl->struc.mols.size();h++){
 
 
     std::cout<<"finished loading"<<"\n";
+    for (int i=0;i<ogl->struc.mols.size();i++){
 
+           ogl->createLinesVBO(ogl->struc.mols[i]);
+
+        }
     ogl->flag = true;
 
     ogl->update();
@@ -656,6 +692,8 @@ void MyGLWidget::updateBoundingBox(molecule mol){
 
 std::vector<QVector3D> MyGLWidget::calculateBoundingBox(std::vector<QVector3D> koords,float scale){
     float xmax,xmin,ymax,ymin,zmax,zmin;
+
+
 
     xmin = koords[0].x();
     xmax = xmin;
@@ -682,6 +720,16 @@ std::vector<QVector3D> MyGLWidget::calculateBoundingBox(std::vector<QVector3D> k
         if(z>zmax)
             zmax = z;
     }
+
+    if(koords.size()==1){
+        xmax+=1;
+        xmin-=1;
+        ymax+=1;
+        ymin-=1;
+        zmax+=1;
+        zmin-=1;
+    }
+
 
     std::vector<QVector3D> box;
     box.push_back(QVector3D(xmin,ymin,zmin));
@@ -845,7 +893,25 @@ void MyGLWidget::initSolidSphereVBO() {
     vboSolidSphereId = id;
     vboSolidSphereSize = static_cast<int>(ico.size());
 }
+void MyGLWidget::initLineVBO(QVector3D c, QVector3D d){
 
+    glGenBuffers(1,&vboLineId);
+
+    lineVBO.push_back(c);
+
+    lineVBO.push_back(d);
+
+
+
+    glBindBuffer(GL_ARRAY_BUFFER,vboLineId);
+
+    glBufferData(GL_ARRAY_BUFFER,lineVBO.size()*sizeof(QVector3D),lineVBO.data(),GL_STATIC_DRAW);
+
+
+
+
+
+}
 void MyGLWidget::initCylinderVBO(){
 
     std::vector<QVector3D> ico;
@@ -1044,6 +1110,28 @@ void MyGLWidget::initShaders() {
         close();
 
     if (!p_Phong.bind())
+        close();
+
+    if (!p_Lines.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertexshaderline.glsl"))
+
+        close();
+
+
+
+    if (!p_Lines.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragmentshaderline.glsl"))
+
+        close();
+
+
+
+    if (!p_Lines.link())
+
+        close();
+
+
+
+    if (!p_Lines.bind())
+
         close();
 
     setlocale(LC_ALL,"");
@@ -1287,7 +1375,7 @@ void MyGLWidget::initializeGL() {
     initCrosshairVBO();
     initializeOVR();
     initCubeVBOandIBO();
-    initCubeMap(QString(":/Maps/Church"));
+    initCubeMap(QString(":/Maps/Lobby"));
 
     glClearColor(0.6,0.6,0.6,1);
 
@@ -1309,10 +1397,10 @@ void MyGLWidget::initializeGL() {
     crosshairView.scale(0.001f);
 }
 
-void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,const QVector3D color,QMatrix4x4 molView) {
+void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,float h,const QVector3D color,QMatrix4x4 molView) {
 
 
-    QVector3D d=c1-c2;
+    QVector3D d=(c1-c2)/h;
     QVector3D a(0,0,1);
     QVector3D rot = QVector3D::crossProduct(d,a);
     float phi = asin(rot.length()/(a.length()*d.length()))*180/M_PI;
@@ -1337,9 +1425,9 @@ void MyGLWidget::drawCylinder(const QVector3D& c1, const QVector3D& c2, float r,
     //p_Phong.setUniformValue("uDiffuse",color);
 
     p_Phong.setUniformValue("uAmbient",color);
-    p_Phong.setUniformValue("uDiffuse",QVector3D(0.3,0.4,0.4));
-    p_Phong.setUniformValue("uSpecular",QVector3D(0.3,0.4,0.4));
-    p_Phong.setUniformValue("uShininess",0.3f);
+    p_Phong.setUniformValue("uDiffuse",color*0.7);
+    //p_Phong.setUniformValue("uSpecular",QVector3D(0.3,0.4,0.4));
+    //p_Phong.setUniformValue("uShininess",0.3f);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboCylinderId);
     int vertexLocation = p_Phong.attributeLocation("a_position");
@@ -1388,7 +1476,127 @@ void MyGLWidget::drawSolidSphere(const QVector3D& c, float r,const QVector3D col
 
     glDrawArrays(GL_TRIANGLES,0,vboSolidSphereSize);
 }
+void MyGLWidget::createLinesVBO(molecule mol){
 
+    for(int i=0;i<mol.parts.size();i++){
+
+        for(int j=0;j<mol.parts[i].elements.size();j++){
+
+            QVector3D pos1 = mol.parts[i].elements[j].pos;
+
+
+
+            for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
+
+                int iBond = mol.parts[i].elements[j].bonds[k].first;
+
+                QVector3D col1=mol.parts[i].elements[j].color;
+
+               // std::cout<<iBond<<"\n";
+
+                QVector3D pos2;
+
+
+
+                //pos2=mol.positions[(iBond-1)];
+
+                //drawCylinderT(pos1,pos2,0.1,col1);
+
+                //drawCylinderT(pos2,pos1,0.1,QVector3D(0.1,0.1,0.1));
+
+                for(int saruman=0;saruman<mol.parts.size();saruman++){
+
+                    for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
+
+                            if(mol.parts[saruman].elements[countdoku].index==iBond){
+
+                                pos2 = mol.parts[saruman].elements[countdoku].pos;
+
+                                QVector3D col2= mol.parts[saruman].elements[countdoku].color;
+
+                                QVector3D mid=(pos1-pos2)/2+pos2;
+
+                                molLines.push_back(pos1);
+
+                                molLines.push_back(col1);
+
+                                molLines.push_back(mid);
+
+                                molLines.push_back(col1);
+
+                                molLines.push_back(pos2);
+
+                                molLines.push_back(col2);
+
+                                molLines.push_back(mid);
+
+                                molLines.push_back(col2);
+
+                            }
+
+                        }
+
+                }
+
+            }
+
+        }
+
+  }
+
+    glGenBuffers(1,&molLinesId);
+
+    glBindBuffer(GL_ARRAY_BUFFER,molLinesId);
+
+    glBufferData(GL_ARRAY_BUFFER,molLines.size()*sizeof(QVector3D),molLines.data(),GL_STATIC_DRAW);
+
+}
+
+
+
+
+
+void MyGLWidget::drawLine(){
+
+
+
+    QMatrix4x4 M(modelView);
+
+    QMatrix4x4 P(this->projection);
+
+
+
+    p_Lines.bind();
+
+    p_Lines.setUniformValue("uMVMat", M);
+
+    p_Lines.setUniformValue("uPMat", P);
+
+    p_Lines.setUniformValue("uNMat", M.normalMatrix());
+
+
+
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, molLinesId);
+
+    int vertexLocation = p_Lines.attributeLocation("a_position");
+
+    p_Lines.enableAttributeArray(vertexLocation);
+
+    glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(QVector3D), 0);
+
+    int colorLocation = p_Lines.attributeLocation("a_color");
+
+    p_Lines.enableAttributeArray(colorLocation);
+
+    glVertexAttribPointer(colorLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
+
+
+
+    glDrawArrays(GL_LINES,0,molLines.size()/2);
+
+}
 void MyGLWidget::drawBoundingBox(std::vector<QVector3D> box,QMatrix4x4 molView,QVector4D color) {
     QMatrix4x4 M(molView);
     QVector3D c;
@@ -1467,23 +1675,139 @@ void MyGLWidget::drawCrosshair() {
 
 void MyGLWidget::drawMolecule(molecule mol,QMatrix4x4 molView,bool selected){
 
-    for(int i=0;i<mol.parts.size();i++){
-        for(int j=0;j<mol.parts[i].elements.size();j++){
-            drawSolidSphere(mol.parts.at(i).elements[j].pos,mol.parts.at(i).elements[j].radius/200,mol.parts.at(i).elements[j].color,molView);
-        }
-    }
-    for(int i=0;i<mol.parts.size();i++){
-        for(int j=0;j<mol.parts[i].elements.size();j++){
-            QVector3D pos1 = mol.parts[i].elements[j].pos;
-            for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
-                int iBond = mol.parts[i].elements[j].bonds[k].first;
-               // std::cout<<iBond<<"\n";
-                QVector3D pos2;
-                pos2=mol.positions[(iBond-1)];
-                drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1),molView);
+
+switch(representation){
+    //Ball and stick
+    case 1: {
+        for(int i=0;i<mol.parts.size();i++){
+            for(int j=0;j<mol.parts[i].elements.size();j++){
+                drawSolidSphere(mol.parts.at(i).elements[j].pos,mol.parts.at(i).elements[j].radius/200,mol.parts.at(i).elements[j].color,molView);
             }
         }
+        for(int i=0;i<mol.parts.size();i++){
+            for(int j=0;j<mol.parts[i].elements.size();j++){
+                QVector3D pos1 = mol.parts[i].elements[j].pos;
+                for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
+                    std::string bondType=mol.parts[i].elements[j].bonds[k].second;
+                    int iBond = mol.parts[i].elements[j].bonds[k].first;
+                   // std::cout<<iBond<<"\n";
+                    QVector3D pos2;
+                    pos2=mol.positions[(iBond-1)];
+                    //drawCylinder(pos1,pos2,0.1,1,QVector3D(0.1,0.1,0.1),molView);
+                    if((bondType=="s") || (bondType=="a")){
+                        drawCylinder(pos1,pos2,0.1,1,QVector3D(0.1,0.1,0.1),molView);
+                    }
+                    if(bondType=="d"){
+                        float a1=pos1.x()+0.06;
+                        QVector3D pos1a{a1,pos1.y(),pos1.z()};
+                        float a2=pos2.x()+0.06;
+                        QVector3D pos2a{a2,pos2.y(),pos2.z()};
+                        drawCylinder(pos1a,pos2a,0.04,1,QVector3D(0.1,0.1,0.1),molView);
+                        float b1=pos1.x()-0.06;
+                        QVector3D pos1b{b1,pos1.y(),pos1.z()};
+                        float b2=pos2.x()-0.06;
+                        QVector3D pos2b{b2,pos2.y(),pos2.z()};
+                        drawCylinder(pos1b,pos2b,0.04,1,QVector3D(0.1,0.1,0.1),molView);
+                    }
+                   /* if(bondType=="t"){
+                        float a1=pos1.x()+0.07;
+                        float a11=pos1.y()+0.07;
+                        QVector3D pos1a{a1,a11,pos1.z()};
+                        float a2=pos2.x()+0.07;
+                        float a22=pos1.y()+0.07;
+                        QVector3D pos2a{a2,a22,pos2.z()};
+                        drawCylinder(pos1a,pos2a,0.04,QVector3D(0.1,0.1,0.1),molView);
+                        float b1=pos1.x()-0.07;
+                        float b11=pos1.y()-0.07;
+                        QVector3D pos1b{b1,b11,pos1.z()};
+                        float b2=pos2.x()-0.07;
+                        float b22=pos2.y()-0.07;
+                        QVector3D pos2b{b2,b22,pos2.z()};
+                        drawCylinder(pos1b,pos2b,0.04,QVector3D(0.1,0.1,0.1),molView);
+                        float b111=pos1.y()+0.09;
+                        QVector3D pos1c{b1,b111,pos1.z()};
+                        float b222=pos2.y()+0.09;
+                        QVector3D pos2c{b2,b222,pos2.z()};
+                        drawCylinder(pos1c,pos2c,0.04,QVector3D(0.1,0.1,0.1),molView);
+                    }*/
+                   /* for(int saruman=0;saruman<mol.parts.size();saruman++){
+                        for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
+                                if(mol.parts[saruman].elements[countdoku].index==iBond){
+                                    pos2 = mol.parts[saruman].elements[countdoku].pos;
+                                    //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
+                                    drawCylinder(pos1,pos2,0.1,QVector3D(0.1,0.1,0.1),molView);
+                                }
+                            }
+                    }*/
+                }
+            }
+        }
+        break;
     }
+    case 2 :{
+        for(int i=0;i<mol.parts.size();i++){
+            for(int j=0;j<mol.parts[i].elements.size();j++){
+                drawSolidSphere(mol.parts.at(i).elements[j].pos,0.1,mol.parts.at(i).elements[j].color,molView);
+            }
+        }
+
+
+        for(int i=0;i<mol.parts.size();i++){
+            for(int j=0;j<mol.parts[i].elements.size();j++){
+                QVector3D pos1 = mol.parts[i].elements[j].pos;
+
+                for(int k=0;k<mol.parts[i].elements[j].bonds.size();k++){
+                    int iBond = mol.parts[i].elements[j].bonds[k].first;
+                    QVector3D col1=mol.parts[i].elements[j].color;
+                   // std::cout<<iBond<<"\n";
+                    QVector3D pos2;
+                    //pos2=mol.positions[(iBond-1)];
+                    //drawCylinderT(pos1,pos2,0.1,col1);
+                    //drawCylinderT(pos2,pos1,0.1,QVector3D(0.1,0.1,0.1));
+                    for(int saruman=0;saruman<mol.parts.size();saruman++){
+                        for(int countdoku=0;countdoku<mol.parts[saruman].elements.size();countdoku++){
+                                if(mol.parts[saruman].elements[countdoku].index==iBond){
+                                    pos2 = mol.parts[saruman].elements[countdoku].pos;
+                                    QVector3D col2= mol.parts[saruman].elements[countdoku].color;
+                                    //std::cout<<saruman<<"  "<<countdoku<<"  "<<std::endl;
+                                    drawCylinder(pos1,pos2,0.1,2,col1,molView);
+                                    drawCylinder(pos2,pos1,0.1,2,col2,molView);
+                                }
+                            }
+                    }
+                }
+            }
+        }
+        break;
+    }
+    case 3:{
+        QMatrix4x4 M(molView);
+        QMatrix4x4 P(this->projection);
+
+        p_Lines.bind();
+        p_Lines.setUniformValue("uMVMat", M);
+        p_Lines.setUniformValue("uPMat", P);
+        p_Lines.setUniformValue("uNMat", M.normalMatrix());
+
+
+        glBindBuffer(GL_ARRAY_BUFFER, molLinesId);
+        int vertexLocation = p_Lines.attributeLocation("a_position");
+        p_Lines.enableAttributeArray(vertexLocation);
+        glVertexAttribPointer(vertexLocation, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(QVector3D), 0);
+        int colorLocation = p_Lines.attributeLocation("a_color");
+        p_Lines.enableAttributeArray(colorLocation);
+        glVertexAttribPointer(colorLocation, 3, GL_FLOAT, GL_FALSE, 2*sizeof(QVector3D), (const void*) sizeof(QVector3D));
+
+        glDrawArrays(GL_LINES,0,molLines.size()/2);
+    }
+}
+
+
+
+
+
+
+
 
     if(showBoundingBox){
         if(!selected)
@@ -1505,6 +1829,8 @@ void MyGLWidget::drawMolecule(molecule mol,QMatrix4x4 molView,bool selected){
 
 
 }
+
+
 
 void MyGLWidget::drawCubeMap(){
 
@@ -1685,7 +2011,7 @@ void MyGLWidget::paintGL() {
         if (struc.mols.size()==0){
             drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2),modelView);
             drawSolidSphere(QVector3D(0,0,0),0.3,QVector3D(0.2,0.2,0.2),modelView);
-            drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,QVector3D(0.2,0.2,0.2),modelView);
+            drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,1,QVector3D(0.2,0.2,0.2),modelView);
          }
         if(struc.mols.size()!=0)
             for(int i=0;i<struc.mols.size();i++){
@@ -1763,8 +2089,8 @@ void MyGLWidget::paintGL() {
                 // std::cout<<inputState.Thumbstick[1].x;
                  //std::cout<<inputState.Thumbstick[1].y;
                  if(struc.mols.size()!=0){
-                     xPos[selectMolIndex]+=(vp.x/2);
-                     yPos[selectMolIndex]+=(vp.y/2);
+                     xPos[selectMolIndex]+=(vp.x/8);
+                     yPos[selectMolIndex]+=(vp.y/8);
                      //translation[selectMolIndex]= yPos[selectMolIndex]*sightz + xPos[selectMolIndex]*sighty;
                      translation[selectMolIndex].translate(vp.x,vp.y,0);
 
@@ -1802,7 +2128,10 @@ void MyGLWidget::paintGL() {
 
              if(buttonLPressed&!(inputState.Buttons&ovrButton_LShoulder)){
                 std::cout<<"RS \n";
-                showCrossHair=!showCrossHair;
+                //showCrossHair=!showCrossHair;
+
+                representation++;
+                representation=representation%3+1;
              }
              buttonLPressed = inputState.Buttons & ovrButton_LShoulder;
 
@@ -1933,7 +2262,7 @@ void MyGLWidget::paintGL() {
             if (struc.mols.size()==0){
                 drawSolidSphere(QVector3D(1,0,0),0.3,QVector3D(0.2,0.2,0.2),modelView);
                 drawSolidSphere(QVector3D(0,0,0),0.3,QVector3D(0.2,0.2,0.2),modelView);
-                drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,QVector3D(0.2,0.2,0.2),modelView);
+                drawCylinder(QVector3D(0,0,0),QVector3D(1,0,0),0.2,1,QVector3D(0.2,0.2,0.2),modelView);
              }
 
             //Draw molecules with rotation and position

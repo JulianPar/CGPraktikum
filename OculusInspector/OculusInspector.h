@@ -57,6 +57,9 @@ public slots:
     void loadModel();
     void setOrthogonal();
     void setOculus();
+    void setBallStick();
+    void setTubes();
+    void setLine();
 
 public:
 
@@ -85,9 +88,11 @@ public:
     void pressA();
     void pressB();
     void dance();
+    void createLinesVBO(molecule mol);
     void refineSolidSphere(const std::vector<QVector3D>&,std::vector<QVector3D>&);
     void initSolidSphereVBO();
     void initCylinderVBO();
+    void initLineVBO(QVector3D c, QVector3D d);
     void updateBoundingBox(molecule mol);
 
     std::vector<QVector3D> calculateBoundingBox(std::vector<QVector3D>, float);
@@ -115,7 +120,7 @@ public:
     std::vector<QVector3D>central;
     int selectMolIndex=-1;
     int selectResIndex=-1;
-    bool buttonAPressed,buttonBPressed,buttonXPressed,buttonYPressed,buttonRPressed,buttonLPressed;
+    bool buttonAPressed,buttonBPressed,buttonXPressed,buttonYPressed,buttonRPressed,buttonLPressed,buttonLMPressed,buttonRMPressed;
     bool iWannaDance;
 
     std::vector<atom> atoms;
@@ -126,17 +131,29 @@ public:
     std::vector<const aiScene*> scenes;
     std::vector<std::vector<unsigned int> > vboTrianglesId, vboTrianglesSize, iboTrianglesId, iboTrianglesSize;
 
-    int viewMode = 1, oldViewMode = 1;
+    //int viewMode = 1, oldViewMode = 1;
     bool showBoundingBox =false;
     bool showResidues =false;
     bool showCrossHair =true;
 
     std::vector<std::vector<QOpenGLTexture*> > textures;
+    int viewMode = 1, representation=1;
 
-    std::vector<GLuint> vboTriangleSetId;
-    GLuint vboSolidSphereId, vboCylinderId, vboCrosshairId;
-    int vboSolidSphereSize, vboCylinderSize, vboCrosshairSize;
-    GLuint vboCubeId, iboCubeId, iboWireBoxId, vboCubeSize, iboCubeSize,iboWireBoxSize;
+        std::vector<std::vector<QVector3D> > triangleSet;
+
+        std::vector<GLuint> vboTriangleSetId;
+
+        GLuint vboSolidSphereId, vboCylinderId,vboLineId,molLinesId,vboCrosshairId;
+
+        int vboSolidSphereSize, vboCylinderSize,vboLineSize, vboCrosshairSize;
+
+        std::vector<QVector3D> lineVBO;
+
+        std::vector<QVector3D> molLines;
+    //std::vector<GLuint> vboTriangleSetId;
+    //GLuint vboSolidSphereId, vboCylinderId, vboCrosshairId;
+    //int vboSolidSphereSize, vboCylinderSize, vboCrosshairSize;
+        GLuint vboCubeId, iboCubeId, iboWireBoxId, vboCubeSize, iboCubeSize,iboWireBoxSize;
 
 protected:
 
@@ -148,11 +165,15 @@ protected:
     void wheelEvent(QWheelEvent*);
 
     void drawSolidSphere(const QVector3D&,float,const QVector3D,QMatrix4x4);
+    void drawSolidSphere(const QVector3D&,float,const QVector3D);
     void drawBoundingBox(std::vector<QVector3D>,QMatrix4x4,QVector4D);
-    void drawCylinder(const QVector3D&,const QVector3D&,float,const QVector3D,QMatrix4x4);
+    void drawCylinder(const QVector3D&,const QVector3D&,float,float,const QVector3D,QMatrix4x4);
     void drawMolecule(molecule mol,QMatrix4x4,bool);
+    void drawMoleculeT(molecule);
+    void drawMoleculeBS(molecule);
     void drawCubeMap();
     void drawCrosshair();
+    void drawLine();
 
     CGMainWindow *main;
     QTimer *timer;
@@ -174,6 +195,7 @@ private:
     QOpenGLShaderProgram p_Diffuse;
     QOpenGLShaderProgram p_Color;
     QOpenGLShaderProgram p_Phong;
+    QOpenGLShaderProgram p_Lines;
     QMatrix4x4 projection,modelView, icke,crosshairView;
     QOpenGLShaderProgram p_Cube;
     QOpenGLTexture *cubemap;
